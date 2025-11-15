@@ -188,10 +188,12 @@ export const clearSupabaseQuestions = async (): Promise<boolean> => {
 // Supabase에서 문제 가져오기
 export const fetchQuestionsFromSupabase = async (): Promise<Question[]> => {
   try {
+    // Supabase 기본 제한이 1000행이므로, 전체 데이터를 가져오기 위해 range 사용
     const { data, error } = await supabase
       .from('questions')
       .select('*')
-      .order('id', { ascending: true });
+      .order('id', { ascending: true })
+      .range(0, 9999); // 최대 10000개까지 가져오기
 
     if (error) {
       console.error('문제 조회 실패:', error);
