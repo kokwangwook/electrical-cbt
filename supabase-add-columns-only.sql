@@ -12,3 +12,4 @@ ADD COLUMN IF NOT EXISTS "detailItem" TEXT;
 ALTER TABLE questions 
 ADD COLUMN IF NOT EXISTS "source" TEXT;
 
+

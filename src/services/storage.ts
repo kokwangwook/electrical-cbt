@@ -542,6 +542,52 @@ export function getMemberById(id: number): Member | null {
   return members.find(m => m.id === id) || null;
 }
 
+/**
+ * 이름, 전화번호, 이메일로 회원 찾기
+ */
+export function getMemberByCredentials(name: string, phone: string, email: string): Member | null {
+  try {
+    const members = getMembers();
+    
+    if (members.length === 0) {
+      console.warn('⚠️ 등록된 회원이 없습니다.');
+      return null;
+    }
+    
+    // 입력값 정규화
+    const normalizedName = name.trim().toLowerCase().replace(/\s+/g, ' ');
+    const normalizedPhone = phone.trim().replace(/[-\s]/g, ''); // 하이픈과 공백 제거
+    const normalizedEmail = email.trim().toLowerCase();
+    
+    console.log('🔍 로그인 시도:', { name: normalizedName, phone: normalizedPhone, email: normalizedEmail });
+    
+    // 이름, 전화번호, 이메일이 모두 일치하는 회원 찾기
+    const member = members.find(m => {
+      const memberName = m.name.trim().toLowerCase().replace(/\s+/g, ' ');
+      const memberPhone = m.phone.trim().replace(/[-\s]/g, '');
+      const memberEmail = (m.email || '').trim().toLowerCase();
+      
+      const nameMatch = memberName === normalizedName;
+      const phoneMatch = memberPhone === normalizedPhone;
+      const emailMatch = normalizedEmail && memberEmail ? memberEmail === normalizedEmail : true; // 이메일이 없으면 무시
+      
+      // 이름과 전화번호는 필수, 이메일은 선택
+      return nameMatch && phoneMatch && (normalizedEmail === '' || emailMatch);
+    });
+    
+    if (member) {
+      console.log('✅ 로그인 성공:', member.name);
+    } else {
+      console.log('❌ 일치하는 회원을 찾을 수 없습니다.');
+    }
+    
+    return member || null;
+  } catch (error) {
+    console.error('❌ 회원 검색 오류:', error);
+    return null;
+  }
+}
+
 export function getMemberByName(name: string): Member | null {
   try {
     const members = getMembers();

@@ -78,8 +78,9 @@ export default function Register({ onRegisterSuccess, onBackToLogin }: RegisterP
       const newMember = addMember({
         name: formData.name.trim(),
         phone: formData.phone.trim(),
+        email: formData.email.trim() || undefined,
         address: formData.address.trim(),
-        memo: `이메일: ${formData.email.trim()}\n가입일: ${new Date().toLocaleString('ko-KR')}`
+        memo: `가입일: ${new Date().toLocaleString('ko-KR')}`
       });
 
       if (!newMember) {
@@ -93,7 +94,7 @@ export default function Register({ onRegisterSuccess, onBackToLogin }: RegisterP
         id: newMember.id,
         name: newMember.name,
         phone: newMember.phone,
-        email: formData.email.trim(),
+        email: newMember.email || '',
         address: newMember.address,
         registeredAt: newMember.registeredAt
       }).then(success => {

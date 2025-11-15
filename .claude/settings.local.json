@@ -33,7 +33,10 @@
       "Bash(cmd /c copy:*)",
       "Bash(cmd /c \"copy d:\\cbt\\electrical-cbt\\src\\pages\\Exam.tsx d:\\cbt\\electrical-cbt\\backup\\v1.0.0_2025-01-15\\src\\pages\\Exam.tsx && echo SUCCESS\")",
       "Bash(cmd /c \"dir d:\\cbt\\electrical-cbt\\backup\\v1.0.0_2025-01-15\")",
-      "Bash(cmd /c:*)"
+      "Bash(cmd /c:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

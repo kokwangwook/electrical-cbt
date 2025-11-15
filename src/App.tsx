@@ -71,9 +71,6 @@ function App() {
     setState('home');
   };
 
-  const handleGuestMode = () => {
-    setState('home');
-  };
 
   const handleGoToRegister = () => {
     setState('register');
@@ -174,7 +171,6 @@ function App() {
       {state === 'login' && (
         <Login
           onLoginSuccess={handleLoginSuccess}
-          onGuestMode={handleGuestMode}
           onGoToRegister={handleGoToRegister}
         />
       )}

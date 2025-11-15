@@ -86,9 +86,11 @@
 `.env.production` 파일을 생성하세요:
 
 ```env
-VITE_SUPABASE_URL=https://eeyzenpolbrfmsamguvf.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVleXplbnBvbGJyZm1zYW1ndXZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxNDg4NjcsImV4cCI6MjA3ODcyNDg2N30.cRxc6STLnhDI2Fm7jADLhhdko50esBNuYOkha3BC0-0
+VITE_SUPABASE_URL=your-supabase-url-here
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key-here
 ```
+
+⚠️ **주의**: 실제 Supabase URL과 API 키는 Supabase 대시보드에서 확인하세요.
 
 ⚠️ **보안 주의:** 실제 프로덕션에서는 환경 변수를 직접 코드에 넣지 마세요!
 
@@ -130,8 +132,8 @@ git push origin main
 
 ### Step 4: 환경 변수 설정
 Settings → Environment Variables에서 추가:
-- `VITE_SUPABASE_URL` = `https://eeyzenpolbrfmsamguvf.supabase.co`
-- `VITE_SUPABASE_ANON_KEY` = `[your-anon-key]`
+- `VITE_SUPABASE_URL` = `[Supabase 대시보드에서 확인]`
+- `VITE_SUPABASE_ANON_KEY` = `[Supabase 대시보드에서 확인]`
 
 ### Step 5: 배포
 "Deploy" 버튼 클릭 → 자동 배포 완료!

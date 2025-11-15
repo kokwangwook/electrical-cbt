@@ -24,6 +24,7 @@ export interface Member {
   id: number; // 회원 고유 ID
   name: string; // 이름
   phone: string; // 전화번호
+  email?: string; // 이메일 (선택)
   address: string; // 주소
   memo: string; // 메모
   registeredAt: number; // 가입 시간 (timestamp)

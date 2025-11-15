@@ -41,3 +41,4 @@ export function isSmallScreen(maxWidth: number = 768): boolean {
   return window.innerWidth <= maxWidth;
 }
 
+

@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# 내부 운영 문서 (민감 정보 포함) - 절대 커밋 금지!
+readme_ecbt.md
+.readme_ecbt.md
+*readme_ecbt*.md
+*.local.md

@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
-import { getMemberByName, setCurrentUser, getCurrentExamSession, clearCurrentExamSession, saveCurrentExamSession, getMembers, initializeData, addLoginHistory } from '../services/storage';
+import { getMemberByCredentials, setCurrentUser, getCurrentExamSession, clearCurrentExamSession, saveCurrentExamSession, getMembers, initializeData, addLoginHistory } from '../services/storage';
 import { saveLoginHistory } from '../services/supabaseService';
 
 interface LoginProps {
   onLoginSuccess: () => void;
-  onGuestMode: () => void;
   onResumeExam?: () => void;
   onGoToRegister?: () => void;
 }
 
-export default function Login({ onLoginSuccess, onGuestMode, onResumeExam, onGoToRegister }: LoginProps) {
+export default function Login({ onLoginSuccess, onResumeExam, onGoToRegister }: LoginProps) {
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -23,61 +24,38 @@ export default function Login({ onLoginSuccess, onGuestMode, onResumeExam, onGoT
     setError(null);
     setLoading(true);
 
+    // 입력값 검증
     if (!name.trim()) {
       setError('이름을 입력하세요.');
       setLoading(false);
       return;
     }
 
-    // 사용자 찾기 (이름만으로)
-    const trimmedName = name.trim();
-    console.log('🔍 로그인 시도:', trimmedName);
-    console.log('📱 디바이스 정보:', {
-      userAgent: navigator.userAgent,
-      platform: navigator.platform,
-      cookieEnabled: navigator.cookieEnabled,
-    });
-    
-    // 로컬 스토리지 확인
-    try {
-      const membersData = localStorage.getItem('members');
-      console.log('💾 로컬 스토리지 회원 데이터 존재:', !!membersData);
-      if (membersData) {
-        const parsed = JSON.parse(membersData);
-        console.log('📋 로컬 스토리지 회원 수:', parsed.length);
-        console.log('📋 로컬 스토리지 회원 목록:', parsed.map((m: any) => m.name));
-      }
-    } catch (e) {
-      console.error('❌ 로컬 스토리지 읽기 실패:', e);
+    if (!phone.trim()) {
+      setError('전화번호를 입력하세요.');
+      setLoading(false);
+      return;
     }
+
+    // 사용자 찾기 (이름, 전화번호, 이메일로)
+    const trimmedName = name.trim();
+    const trimmedPhone = phone.trim();
+    const trimmedEmail = email.trim();
     
-    const member = getMemberByName(trimmedName);
+    console.log('🔍 로그인 시도:', { name: trimmedName, phone: trimmedPhone, email: trimmedEmail });
+    
+    const member = getMemberByCredentials(trimmedName, trimmedPhone, trimmedEmail);
     
     if (!member) {
-      // 디버깅: 등록된 회원 목록 확인
+      // 등록된 회원 목록 확인
       const allMembers = getMembers();
-      console.log('📋 등록된 회원 목록:', allMembers.map(m => m.name));
-      console.log('❌ 회원을 찾을 수 없습니다:', trimmedName);
-      console.log('🔍 입력값 상세:', {
-        원본: name,
-        trim: trimmedName,
-        소문자: trimmedName.toLowerCase(),
-        정규화: trimmedName.toLowerCase().replace(/\s+/g, ' '),
-      });
+      console.log('📋 등록된 회원 목록:', allMembers.map(m => `${m.name} (${m.phone})`));
       
-      // 등록된 회원 이름과 비교 (디버깅)
-      allMembers.forEach(m => {
-        const memberName = m.name.trim().toLowerCase().replace(/\s+/g, ' ');
-        const inputName = trimmedName.toLowerCase().replace(/\s+/g, ' ');
-        console.log(`비교: "${m.name}" (정규화: "${memberName}") vs "${trimmedName}" (정규화: "${inputName}") → ${memberName === inputName ? '일치' : '불일치'}`);
-      });
-      
-      // 태블릿에서 로컬 스토리지 문제일 수 있음
       let errorMessage = '';
       if (allMembers.length === 0) {
-        errorMessage = '등록된 회원이 없습니다. 관리자 페이지에서 회원을 등록해주세요.';
+        errorMessage = '등록된 회원이 없습니다. 회원가입을 먼저 해주세요.';
       } else {
-        errorMessage = `등록되지 않은 사용자입니다.\n\n입력한 이름: "${trimmedName}"\n\n등록된 회원 목록:\n${allMembers.map((m, i) => `${i + 1}. ${m.name}`).join('\n')}\n\n※ 이름이 정확히 일치해야 합니다.`;
+        errorMessage = `등록되지 않은 사용자입니다.\n\n입력한 이름: "${trimmedName}"\n입력한 전화번호: "${trimmedPhone}"${trimmedEmail ? `\n입력한 이메일: "${trimmedEmail}"` : ''}\n\n등록된 회원 목록:\n${allMembers.map((m, i) => `${i + 1}. ${m.name} (${m.phone})`).join('\n')}\n\n※ 이름과 전화번호가 정확히 일치해야 합니다.`;
       }
       
       setError(errorMessage);
@@ -130,7 +108,7 @@ export default function Login({ onLoginSuccess, onGuestMode, onResumeExam, onGoT
 
       // 현재 사용자의 세션이면 팝업으로 선택하도록
       const confirmed = window.confirm(
-        `⚠️ ${name.trim()}님, 이전에 풀던 시험이 있습니다!\n\n` +
+        `⚠️ ${member.name}님, 이전에 풀던 시험이 있습니다!\n\n` +
         `진행 상황: ${Object.keys(currentSession.answers || {}).length}/${currentSession.questions.length} 문제 풀이 완료\n\n` +
         `✅ 확인: 이전 시험 이어서 풀기\n` +
         `❌ 취소: 새로운 시험 시작하기`
@@ -156,7 +134,7 @@ export default function Login({ onLoginSuccess, onGuestMode, onResumeExam, onGoT
     onLoginSuccess();
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleLogin();
     }
@@ -172,17 +150,43 @@ export default function Login({ onLoginSuccess, onGuestMode, onResumeExam, onGoT
         </div>
 
         {/* 로그인 폼 */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">이름</label>
-          <input
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="홍길동"
-            autoFocus
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
-          />
+        <div className="space-y-4 mb-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">이름</label>
+            <input
+              type="text"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="홍길동"
+              autoFocus
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">전화번호</label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="010-1234-5678"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">이메일 주소 (선택)</label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="example@email.com"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+            />
+          </div>
         </div>
 
         {/* 에러 메시지 */}
@@ -199,14 +203,6 @@ export default function Login({ onLoginSuccess, onGuestMode, onResumeExam, onGoT
           className={`w-full ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white font-bold py-4 px-6 rounded-lg transition-colors duration-200 text-lg mb-4`}
         >
           {loading ? '로그인 중...' : '🔑 로그인'}
-        </button>
-
-        {/* 게스트 모드 */}
-        <button
-          onClick={onGuestMode}
-          className="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-4 px-6 rounded-lg transition-colors duration-200 text-lg"
-        >
-          👤 게스트로 시작 (기록 저장 안됨)
         </button>
 
         {/* 회원가입 버튼 */}
@@ -227,7 +223,7 @@ export default function Login({ onLoginSuccess, onGuestMode, onResumeExam, onGoT
             💡 <strong>회원가입 후 로그인하시면 학습 기록이 저장됩니다</strong>
           </p>
           <p className="text-xs text-blue-600 mt-2">
-            게스트 모드는 기록이 저장되지 않습니다.
+            이름과 전화번호는 필수이며, 이메일은 선택사항입니다.
           </p>
         </div>
 

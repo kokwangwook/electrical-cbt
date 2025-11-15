@@ -1,0 +1,6 @@
+# Git 속성 설정
+# 내부 문서는 절대 추적하지 않음
+.readme_ecbt.md -diff -merge linguist-generated
+readme_ecbt.md -diff -merge linguist-generated
+*readme_ecbt*.md -diff -merge linguist-generated
+

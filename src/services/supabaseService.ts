@@ -172,7 +172,7 @@ export const saveMemberToSupabase = async (member: {
   id: number;
   name: string;
   phone: string;
-  email: string;
+  email?: string;
   address: string;
   registeredAt: number;
 }): Promise<boolean> => {
