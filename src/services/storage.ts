@@ -588,6 +588,61 @@ export function getMemberByCredentials(name: string, phone: string, email: strin
   }
 }
 
+/**
+ * 하나의 입력값으로 이름/전화번호/이메일 중 하나라도 일치하는 회원 찾기
+ */
+export function getMemberByAnyCredential(input: string): Member | null {
+  try {
+    const members = getMembers();
+    
+    if (members.length === 0) {
+      console.warn('⚠️ 등록된 회원이 없습니다.');
+      return null;
+    }
+    
+    if (!input || !input.trim()) {
+      return null;
+    }
+    
+    // 입력값 정규화
+    const normalizedInput = input.trim();
+    const normalizedInputLower = normalizedInput.toLowerCase();
+    const normalizedInputPhone = normalizedInput.replace(/[-\s]/g, ''); // 전화번호용 (하이픈/공백 제거)
+    const normalizedInputName = normalizedInputLower.replace(/\s+/g, ' '); // 이름용 (공백 정규화)
+    
+    console.log('🔍 유연한 로그인 시도:', { input: normalizedInput });
+    
+    // 이름, 전화번호, 이메일 중 하나라도 일치하는 회원 찾기
+    const member = members.find(m => {
+      const memberName = m.name.trim().toLowerCase().replace(/\s+/g, ' ');
+      const memberPhone = m.phone.trim().replace(/[-\s]/g, '');
+      const memberEmail = (m.email || '').trim().toLowerCase();
+      
+      // 이름 매칭
+      const nameMatch = memberName === normalizedInputName;
+      
+      // 전화번호 매칭 (하이픈/공백 제거 후 비교)
+      const phoneMatch = memberPhone === normalizedInputPhone;
+      
+      // 이메일 매칭
+      const emailMatch = memberEmail && normalizedInputLower === memberEmail;
+      
+      return nameMatch || phoneMatch || emailMatch;
+    });
+    
+    if (member) {
+      console.log('✅ 로그인 성공:', member.name, '(매칭 방식: 이름/전화번호/이메일)');
+    } else {
+      console.log('❌ 일치하는 회원을 찾을 수 없습니다.');
+    }
+    
+    return member || null;
+  } catch (error) {
+    console.error('❌ 회원 검색 오류:', error);
+    return null;
+  }
+}
+
 export function getMemberByName(name: string): Member | null {
   try {
     const members = getMembers();

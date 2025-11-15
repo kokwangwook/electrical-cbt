@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getMemberByCredentials, setCurrentUser, getCurrentExamSession, clearCurrentExamSession, saveCurrentExamSession, getMembers, initializeData, addLoginHistory } from '../services/storage';
+import { getMemberByAnyCredential, setCurrentUser, getCurrentExamSession, clearCurrentExamSession, saveCurrentExamSession, getMembers, initializeData, addLoginHistory } from '../services/storage';
 import { saveLoginHistory } from '../services/supabaseService';
 
 interface LoginProps {
@@ -9,9 +9,7 @@ interface LoginProps {
 }
 
 export default function Login({ onLoginSuccess, onResumeExam, onGoToRegister }: LoginProps) {
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
+  const [input, setInput] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -25,26 +23,18 @@ export default function Login({ onLoginSuccess, onResumeExam, onGoToRegister }: 
     setLoading(true);
 
     // 입력값 검증
-    if (!name.trim()) {
-      setError('이름을 입력하세요.');
+    if (!input.trim()) {
+      setError('이름, 전화번호 또는 이메일 주소를 입력하세요.');
       setLoading(false);
       return;
     }
 
-    if (!phone.trim()) {
-      setError('전화번호를 입력하세요.');
-      setLoading(false);
-      return;
-    }
-
-    // 사용자 찾기 (이름, 전화번호, 이메일로)
-    const trimmedName = name.trim();
-    const trimmedPhone = phone.trim();
-    const trimmedEmail = email.trim();
+    // 사용자 찾기 (이름, 전화번호, 이메일 중 하나라도 일치하면 됨)
+    const trimmedInput = input.trim();
     
-    console.log('🔍 로그인 시도:', { name: trimmedName, phone: trimmedPhone, email: trimmedEmail });
+    console.log('🔍 로그인 시도:', { input: trimmedInput });
     
-    const member = getMemberByCredentials(trimmedName, trimmedPhone, trimmedEmail);
+    const member = getMemberByAnyCredential(trimmedInput);
     
     if (!member) {
       // 등록된 회원 목록 확인
@@ -55,7 +45,7 @@ export default function Login({ onLoginSuccess, onResumeExam, onGoToRegister }: 
       if (allMembers.length === 0) {
         errorMessage = '등록된 회원이 없습니다. 회원가입을 먼저 해주세요.';
       } else {
-        errorMessage = `등록되지 않은 사용자입니다.\n\n입력한 이름: "${trimmedName}"\n입력한 전화번호: "${trimmedPhone}"${trimmedEmail ? `\n입력한 이메일: "${trimmedEmail}"` : ''}\n\n등록된 회원 목록:\n${allMembers.map((m, i) => `${i + 1}. ${m.name} (${m.phone})`).join('\n')}\n\n※ 이름과 전화번호가 정확히 일치해야 합니다.`;
+        errorMessage = `등록되지 않은 사용자입니다.\n\n입력한 값: "${trimmedInput}"\n\n등록된 회원 목록:\n${allMembers.map((m, i) => `${i + 1}. ${m.name} (${m.phone}${m.email ? `, ${m.email}` : ''})`).join('\n')}\n\n※ 이름, 전화번호 또는 이메일 주소 중 하나를 입력하세요.`;
       }
       
       setError(errorMessage);
@@ -152,40 +142,21 @@ export default function Login({ onLoginSuccess, onResumeExam, onGoToRegister }: 
         {/* 로그인 폼 */}
         <div className="space-y-4 mb-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">이름</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              이름, 전화번호 또는 이메일 주소
+            </label>
             <input
               type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
+              value={input}
+              onChange={e => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="홍길동"
+              placeholder="홍길동 또는 010-1234-5678 또는 example@email.com"
               autoFocus
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">전화번호</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="010-1234-5678"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">이메일 주소 (선택)</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="example@email.com"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
-            />
+            <p className="mt-2 text-xs text-gray-500">
+              💡 이름, 전화번호, 이메일 주소 중 하나만 입력하세요.
+            </p>
           </div>
         </div>
 
@@ -223,7 +194,7 @@ export default function Login({ onLoginSuccess, onResumeExam, onGoToRegister }: 
             💡 <strong>회원가입 후 로그인하시면 학습 기록이 저장됩니다</strong>
           </p>
           <p className="text-xs text-blue-600 mt-2">
-            이름과 전화번호는 필수이며, 이메일은 선택사항입니다.
+            이름, 전화번호 또는 이메일 주소 중 하나만 입력하면 로그인됩니다.
           </p>
         </div>
 
