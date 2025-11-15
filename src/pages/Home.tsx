@@ -31,7 +31,6 @@ interface HomeProps {
 export default function Home({ onStartExam, onGoToWrongAnswers, onGoToStatistics }: HomeProps) {
   const [mode, setMode] = useState<'timedRandom' | 'untimedRandom' | 'category' | 'wrong'>('untimedRandom');
   const [selectedCategory, setSelectedCategory] = useState<string>('전기이론');
-  const [randomize, setRandomize] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [hasPreviousSession, setHasPreviousSession] = useState<boolean>(false);
   const [previousSession, setPreviousSession] = useState<ExamSession | null>(null);

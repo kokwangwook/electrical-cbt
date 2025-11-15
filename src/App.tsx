@@ -92,9 +92,9 @@ function App() {
     setState('exam');
   };
 
-  const handleCompleteExam = (examAnswers: (number | null)[], mode?: 'timedRandom' | 'untimedRandom' | 'category' | 'wrong') => {
+  const handleCompleteExam = (examAnswers: (number | null)[], mode?: 'timedRandom' | 'untimedRandom' | 'random' | 'category' | 'wrong') => {
     setAnswers(examAnswers);
-    if (mode) {
+    if (mode && mode !== 'random') {
       setExamMode(mode);
     }
     setState('result');

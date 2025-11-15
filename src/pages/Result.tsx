@@ -8,11 +8,11 @@ interface ResultProps {
   questions: Question[];
   answers: (number | null)[];
   timeSpent: number;
-  mode?: 'random' | 'category' | 'wrong';
+  mode?: 'timedRandom' | 'untimedRandom' | 'random' | 'category' | 'wrong';
   onRestart: () => void;
 }
 
-export default function Result({ questions, answers, timeSpent, mode = 'random', onRestart }: ResultProps) {
+export default function Result({ questions, answers, timeSpent, mode = 'timedRandom', onRestart }: ResultProps) {
   const [showReview, setShowReview] = useState(false);
   const [reviewIndex, setReviewIndex] = useState(0);
 

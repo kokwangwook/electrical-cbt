@@ -234,7 +234,7 @@ export default function Statistics({ onBack }: StatisticsProps) {
                                 {new Date(result.timestamp).toLocaleDateString()}
                               </td>
                               <td className="py-2 px-4 text-sm text-gray-600">
-                                {result.mode === 'random'
+                                {result.mode === 'random' || result.mode === 'timedRandom' || result.mode === 'untimedRandom'
                                   ? '랜덤'
                                   : result.mode === 'category'
                                   ? '카테고리'

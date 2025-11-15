@@ -25,7 +25,7 @@ export default function LatexRenderer({ text, className = '' }: LatexRendererPro
     
     // 유니코드 수학 기호를 LaTeX 명령어로 변환 (전처리)
     // $ 사이의 내용에 대해서만 변환
-    textString = textString.replace(/\$([^$]+?)\$/g, (match, formula) => {
+    textString = textString.replace(/\$([^$]+?)\$/g, (_match, formula) => {
       let processedFormula = formula;
       
       // 대괄호로 감싸진 단위 변환 (예: [mm²] → [\text{mm}^2])
@@ -64,14 +64,14 @@ export default function LatexRenderer({ text, className = '' }: LatexRendererPro
     
     // $ ... $ 사이의 LaTeX 렌더링 (인라인 수식)
     // 정규식을 개선하여 $ 사이의 내용을 더 정확하게 매칭
-    let result = textString.replace(/\$([^$]+?)\$/g, (match, formula) => {
+    let result = textString.replace(/\$([^$]+?)\$/g, (_match, formula) => {
       try {
         // 공백 제거 및 트림
         let trimmedFormula = formula.trim();
-        
+
         // KaTeX가 지원하지 않는 특수 문자를 \text{}로 감싸기
         // 원 안의 문자들 (Ⓜ, ⓐ, ⓑ 등) 처리
-        trimmedFormula = trimmedFormula.replace(/[ⓐ-ⓩⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ]/g, (char) => {
+        trimmedFormula = trimmedFormula.replace(/[ⓐ-ⓩⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ]/g, (char: string) => {
           return `\\text{${char}}`;
         });
         
@@ -85,24 +85,24 @@ export default function LatexRenderer({ text, className = '' }: LatexRendererPro
         // 렌더링 결과가 비어있거나 에러가 있는 경우 원본 반환
         if (!rendered || rendered.trim() === '') {
           console.warn('LaTeX 렌더링 결과가 비어있음:', trimmedFormula);
-          return match;
+          return `$${formula}$`;
         }
-        
+
         // 렌더링된 HTML에 에러 클래스가 포함되어 있는지 확인
         if (rendered.includes('katex-error')) {
           console.warn('LaTeX 렌더링 에러 감지:', trimmedFormula, '렌더링 결과:', rendered);
           // 에러가 있어도 일단 렌더링된 결과를 반환 (에러 메시지 포함)
         }
-        
+
         return rendered;
       } catch (e) {
         console.error('LaTeX 렌더링 오류:', e, '수식:', formula);
-        return match; // 오류 시 원본 텍스트 반환
+        return `$${formula}$`; // 오류 시 원본 텍스트 반환
       }
     });
 
     // $$ ... $$ 사이의 LaTeX 렌더링 (블록 수식)
-    result = result.replace(/\$\$(.+?)\$\$/g, (match, formula) => {
+    result = result.replace(/\$\$(.+?)\$\$/g, (_match, formula) => {
       try {
         return katex.renderToString(formula.trim(), {
           throwOnError: false,
@@ -111,7 +111,7 @@ export default function LatexRenderer({ text, className = '' }: LatexRendererPro
         });
       } catch (e) {
         console.error('LaTeX 렌더링 오류:', e);
-        return match;
+        return `$$${formula}$$`;
       }
     });
 

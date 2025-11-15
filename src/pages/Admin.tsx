@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import type { Question, Member, ExamConfig } from '../types';
 import {
   getQuestions,
@@ -587,7 +587,6 @@ export default function Admin() {
 
     const updatedQuestions = allQuestions.map(q => {
       let updated = { ...q };
-      let changed = false;
 
       // 1. 출제기준이 없으면 자동 적용
       if (!updated.standard) {
@@ -605,7 +604,6 @@ export default function Admin() {
         if (matchedStandard) {
           updated.standard = matchedStandard;
           appliedStandardCount++;
-          changed = true;
         }
       }
 
@@ -615,7 +613,6 @@ export default function Admin() {
         if (matchedDetailItem) {
           updated.detailItem = matchedDetailItem;
           appliedDetailItemCount++;
-          changed = true;
         }
       }
 

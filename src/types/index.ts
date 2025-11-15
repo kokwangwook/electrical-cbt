@@ -57,7 +57,7 @@ export interface ExamResult {
   wrongQuestions: Question[]; // 틀린 문제 목록
   allQuestions?: Question[]; // 전체 문제 목록 (통계 계산용)
   timestamp: number; // 시험 완료 시간
-  mode: 'timedRandom' | 'untimedRandom' | 'category' | 'wrong'; // 시험 모드
+  mode: 'timedRandom' | 'untimedRandom' | 'random' | 'category' | 'wrong'; // 시험 모드 (random은 이전 버전 호환용)
   category?: string; // 카테고리
 }
 
