@@ -10,9 +10,8 @@ import {
   getMemberById,
   logout,
   initializeData,
-  clearWrongAnswers,
-  clearStatistics,
   getReviewQuestions,
+  clearAllData,
 } from '../services/storage';
 import type { ExamSession } from '../types';
 import {
@@ -275,7 +274,7 @@ export default function Home({ onStartExam, onGoToStatistics }: HomeProps) {
       const width = 1400;
       const height = 900;
       const left = (window.screen.width - width) / 2;
-      const top = (window.screen.height - height) / 2;
+      const top = 100; // Y축 위치를 100픽셀로 고정
 
       const newWindow = window.open(
         `${window.location.origin}${window.location.pathname}?mode=exam`,
@@ -330,13 +329,12 @@ export default function Home({ onStartExam, onGoToStatistics }: HomeProps) {
     if (hasStats) {
       message += `- 진행 중인 시험 세션\n`;
     }
-    message += `- 학습 통계\n\n`;
+    message += `- 학습 통계\n`;
+    message += `- 문제 이해도\n\n`;
     message += '⚠️ 이 작업은 되돌릴 수 없습니다.';
 
     if (window.confirm(message)) {
-      clearWrongAnswers();
-      clearStatistics();
-      clearCurrentExamSession();
+      clearAllData();
       alert('✅ 모든 데이터가 초기화되었습니다.');
       window.location.reload();
     }
