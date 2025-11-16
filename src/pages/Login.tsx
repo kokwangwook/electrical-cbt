@@ -27,38 +27,32 @@ export default function Login({ onLoginSuccess, onResumeExam, onGoToRegister }: 
       const supabaseMembers = await fetchAllMembersFromSupabase();
 
       if (supabaseMembers.length > 0) {
-        // Supabase 회원을 로컬 스토리지에 병합
-        const localMembers = getMembers();
-        const mergedMembers = [...localMembers];
+        // Supabase 회원 ID 목록
+        const supabaseIds = new Set(supabaseMembers.map(m => m.id));
 
-        for (const sMember of supabaseMembers) {
-          const existingIndex = mergedMembers.findIndex(m => m.id === sMember.id);
-          if (existingIndex !== -1) {
-            // 기존 회원 업데이트 (Supabase 데이터 우선)
-            mergedMembers[existingIndex] = {
-              ...mergedMembers[existingIndex],
-              name: sMember.name,
-              phone: sMember.phone,
-              email: sMember.email,
-              address: sMember.address,
-              memo: sMember.memo || mergedMembers[existingIndex].memo
-            };
-          } else {
-            // 새 회원 추가
-            mergedMembers.push({
-              id: sMember.id,
-              name: sMember.name,
-              phone: sMember.phone,
-              email: sMember.email,
-              address: sMember.address,
-              registeredAt: sMember.registeredAt,
-              memo: sMember.memo || ''
-            });
-          }
+        // Supabase를 source of truth로 사용
+        // Supabase에 있는 회원만 유지하고, 삭제된 회원은 제거
+        const mergedMembers = supabaseMembers.map(sMember => ({
+          id: sMember.id,
+          name: sMember.name,
+          phone: sMember.phone,
+          email: sMember.email,
+          address: sMember.address,
+          registeredAt: sMember.registeredAt,
+          memo: sMember.memo || ''
+        }));
+
+        // 로컬에만 있는 회원은 제거 (Supabase에서 삭제된 회원)
+        const localMembers = getMembers();
+        const removedMembers = localMembers.filter(m => !supabaseIds.has(m.id));
+        if (removedMembers.length > 0) {
+          console.log(`🗑️ 서버에서 삭제된 회원 ${removedMembers.length}명 로컬에서 제거:`, removedMembers.map(m => m.name));
         }
 
         saveMembers(mergedMembers);
-        console.log(`✅ 회원 목록 동기화 완료: ${supabaseMembers.length}명`);
+        console.log(`✅ 회원 목록 동기화 완료: ${supabaseMembers.length}명 (서버 기준)`);
+      } else {
+        console.log('ℹ️ Supabase에 회원이 없거나 연결 실패');
       }
     } catch (err) {
       console.warn('⚠️ Supabase 회원 동기화 실패:', err);
