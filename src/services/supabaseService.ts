@@ -224,16 +224,106 @@ export const checkEmailExists = async (email: string): Promise<boolean> => {
 };
 
 /**
- * 문제 일괄 삽입 (Supabase)
+ * 문제 일괄 삽입 (Supabase) - 핵심 필드만
  */
 export const insertQuestions = async (
   questions: Partial<Question>[]
 ): Promise<{ success: number; failed: number; errors: string[] }> => {
   const result = { success: 0, failed: 0, errors: [] as string[] };
 
-  for (const q of questions) {
+  // 첫 번째 삽입 시도로 스키마 확인
+  if (questions.length > 0) {
+    const firstQ = questions[0];
+
+    // 먼저 모든 필드로 시도
+    const fullInsertData: Record<string, unknown> = {
+      category: firstQ.category,
+      question: firstQ.question,
+      option1: firstQ.option1,
+      option2: firstQ.option2,
+      option3: firstQ.option3,
+      option4: firstQ.option4,
+      answer: firstQ.answer,
+      explanation: firstQ.explanation || ''
+    };
+
+    // 선택적 필드 추가
+    if (firstQ.standard) fullInsertData.standard = firstQ.standard;
+    if (firstQ.detailItem) fullInsertData.detail_item = firstQ.detailItem;
+    if (firstQ.weight && firstQ.weight !== 5) fullInsertData.weight = firstQ.weight;
+    if (firstQ.source) fullInsertData.source = firstQ.source;
+
+    const { error: firstError } = await supabase.from('questions').insert(fullInsertData);
+
+    if (firstError) {
+      console.warn('선택적 필드 포함 삽입 실패, 핵심 필드만으로 재시도:', firstError.message);
+
+      // 핵심 필드만으로 재시도
+      const coreInsertData = {
+        category: firstQ.category,
+        question: firstQ.question,
+        option1: firstQ.option1,
+        option2: firstQ.option2,
+        option3: firstQ.option3,
+        option4: firstQ.option4,
+        answer: firstQ.answer,
+        explanation: firstQ.explanation || ''
+      };
+
+      const { error: coreError } = await supabase.from('questions').insert(coreInsertData);
+
+      if (coreError) {
+        result.failed++;
+        result.errors.push(`첫 번째 문제 삽입 실패: ${coreError.message}`);
+        console.error('핵심 필드만으로도 실패:', coreError);
+        return result; // 첫 번째도 실패하면 중단
+      } else {
+        result.success++;
+        console.log('✅ 핵심 필드만으로 삽입 성공, 나머지도 같은 방식으로 진행');
+
+        // 나머지 문제들을 핵심 필드만으로 삽입
+        for (let i = 1; i < questions.length; i++) {
+          const q = questions[i];
+          try {
+            const { error } = await supabase.from('questions').insert({
+              category: q.category,
+              question: q.question,
+              option1: q.option1,
+              option2: q.option2,
+              option3: q.option3,
+              option4: q.option4,
+              answer: q.answer,
+              explanation: q.explanation || ''
+            });
+
+            if (error) {
+              result.failed++;
+              if (result.errors.length < 10) {
+                result.errors.push(`문제 ${i + 1} 삽입 실패: ${error.message}`);
+              }
+            } else {
+              result.success++;
+            }
+          } catch (err) {
+            result.failed++;
+            if (result.errors.length < 10) {
+              result.errors.push(`문제 ${i + 1} 삽입 오류: ${err}`);
+            }
+          }
+        }
+        return result;
+      }
+    } else {
+      result.success++;
+      console.log('✅ 선택적 필드 포함하여 삽입 성공');
+    }
+  }
+
+  // 나머지 문제들 (첫 번째가 성공한 경우)
+  for (let i = 1; i < questions.length; i++) {
+    const q = questions[i];
     try {
-      const { error } = await supabase.from('questions').insert({
+      const insertData: Record<string, unknown> = {
         category: q.category,
         question: q.question,
         option1: q.option1,
@@ -241,26 +331,29 @@ export const insertQuestions = async (
         option3: q.option3,
         option4: q.option4,
         answer: q.answer,
-        explanation: q.explanation || '',
-        standard: q.standard || null,
-        detailItem: q.detailItem || null,
-        weight: q.weight || 5,
-        source: q.source || null,
-        hasImage: q.hasImage || false,
-        imageUrl: q.imageUrl || null,
-        mustInclude: q.mustInclude || false,
-        mustExclude: q.mustExclude || false
-      });
+        explanation: q.explanation || ''
+      };
+
+      if (q.standard) insertData.standard = q.standard;
+      if (q.detailItem) insertData.detail_item = q.detailItem;
+      if (q.weight && q.weight !== 5) insertData.weight = q.weight;
+      if (q.source) insertData.source = q.source;
+
+      const { error } = await supabase.from('questions').insert(insertData);
 
       if (error) {
         result.failed++;
-        result.errors.push(`문제 삽입 실패: ${error.message}`);
+        if (result.errors.length < 10) {
+          result.errors.push(`문제 ${i + 1} 삽입 실패: ${error.message}`);
+        }
       } else {
         result.success++;
       }
     } catch (err) {
       result.failed++;
-      result.errors.push(`문제 삽입 오류: ${err}`);
+      if (result.errors.length < 10) {
+        result.errors.push(`문제 ${i + 1} 삽입 오류: ${err}`);
+      }
     }
   }
 
