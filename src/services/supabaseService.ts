@@ -184,6 +184,48 @@ export const getLoginHistory = async (): Promise<LoginHistory[]> => {
 };
 
 /**
+ * 로그인 기록 삭제 (단일)
+ */
+export const deleteLoginHistoryFromSupabase = async (id: number): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('login_history')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('로그인 기록 삭제 실패:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('로그인 기록 삭제 오류:', err);
+    return false;
+  }
+};
+
+/**
+ * 로그인 기록 전체 삭제
+ */
+export const clearLoginHistoryFromSupabase = async (): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('login_history')
+      .delete()
+      .neq('id', 0); // 모든 레코드 삭제
+
+    if (error) {
+      console.error('로그인 기록 전체 삭제 실패:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('로그인 기록 전체 삭제 오류:', err);
+    return false;
+  }
+};
+
+/**
  * 회원 정보 저장 (Supabase)
  */
 export const saveMemberToSupabase = async (member: {

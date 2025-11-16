@@ -15,9 +15,6 @@ import {
   deleteAllData,
   downloadBackup,
   restoreFromFile,
-  getLoginHistory,
-  deleteLoginHistory,
-  clearLoginHistory,
   clearAllCaches,
   compressImage,
   getLocalStorageUsage,
@@ -49,6 +46,9 @@ import {
   updateQuestionInSupabase,
   deleteQuestionFromSupabase,
   saveMemberToSupabase,
+  getLoginHistory as getLoginHistoryFromSupabase,
+  deleteLoginHistoryFromSupabase,
+  clearLoginHistoryFromSupabase,
 } from '../services/supabaseService';
 import { useFeedbacks } from '../hooks/useFeedbacks';
 
@@ -245,9 +245,14 @@ export default function Admin() {
     setMembers(allMembers);
   };
 
-  const loadLoginHistory = () => {
-    const history = getLoginHistory();
-    setLoginHistory(history);
+  const loadLoginHistory = async () => {
+    try {
+      const history = await getLoginHistoryFromSupabase();
+      setLoginHistory(history);
+    } catch (err) {
+      console.error('로그인 기록 로드 실패:', err);
+      setLoginHistory([]);
+    }
   };
 
   // loadFeedbacks는 useFeedbacks 훅에서 제공됨
@@ -1166,12 +1171,16 @@ export default function Admin() {
   };
 
   // 로그인 기록 삭제 (단일)
-  const handleDeleteLoginRecord = (id: number) => {
+  const handleDeleteLoginRecord = async (id: number) => {
     if (window.confirm('이 로그인 기록을 삭제하시겠습니까?')) {
       try {
-        deleteLoginHistory(id);
-        loadLoginHistory();
-        alert('✅ 로그인 기록이 삭제되었습니다.');
+        const success = await deleteLoginHistoryFromSupabase(id);
+        if (success) {
+          await loadLoginHistory();
+          alert('✅ 로그인 기록이 삭제되었습니다.');
+        } else {
+          alert('❌ 로그인 기록 삭제에 실패했습니다.');
+        }
       } catch (error) {
         console.error('로그인 기록 삭제 실패:', error);
         alert('❌ 로그인 기록 삭제에 실패했습니다.');
@@ -1180,12 +1189,16 @@ export default function Admin() {
   };
 
   // 모든 로그인 기록 삭제
-  const handleClearLoginHistory = () => {
+  const handleClearLoginHistory = async () => {
     if (window.confirm('⚠️ 모든 로그인 기록을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.')) {
       try {
-        clearLoginHistory();
-        loadLoginHistory();
-        alert('✅ 모든 로그인 기록이 삭제되었습니다.');
+        const success = await clearLoginHistoryFromSupabase();
+        if (success) {
+          await loadLoginHistory();
+          alert('✅ 모든 로그인 기록이 삭제되었습니다.');
+        } else {
+          alert('❌ 로그인 기록 삭제에 실패했습니다.');
+        }
       } catch (error) {
         console.error('로그인 기록 삭제 실패:', error);
         alert('❌ 로그인 기록 삭제에 실패했습니다.');
