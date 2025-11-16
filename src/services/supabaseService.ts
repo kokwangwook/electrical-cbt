@@ -258,8 +258,8 @@ export const insertQuestions = async (
     if (firstError) {
       console.warn('선택적 필드 포함 삽입 실패, 핵심 필드만으로 재시도:', firstError.message);
 
-      // 핵심 필드만으로 재시도
-      const coreInsertData = {
+      // 핵심 필드만으로 재시도 (weight 포함)
+      const coreInsertData: Record<string, unknown> = {
         category: firstQ.category,
         question: firstQ.question,
         option1: firstQ.option1,
@@ -267,7 +267,8 @@ export const insertQuestions = async (
         option3: firstQ.option3,
         option4: firstQ.option4,
         answer: firstQ.answer,
-        explanation: firstQ.explanation || ''
+        explanation: firstQ.explanation || '',
+        weight: firstQ.weight !== undefined ? firstQ.weight : 5
       };
 
       const { error: coreError } = await supabase.from('questions').insert(coreInsertData);
@@ -281,7 +282,7 @@ export const insertQuestions = async (
         result.success++;
         console.log('✅ 핵심 필드만으로 삽입 성공, 나머지도 같은 방식으로 진행');
 
-        // 나머지 문제들을 핵심 필드만으로 삽입
+        // 나머지 문제들을 핵심 필드만으로 삽입 (weight 포함)
         for (let i = 1; i < questions.length; i++) {
           const q = questions[i];
           try {
@@ -293,7 +294,8 @@ export const insertQuestions = async (
               option3: q.option3,
               option4: q.option4,
               answer: q.answer,
-              explanation: q.explanation || ''
+              explanation: q.explanation || '',
+              weight: q.weight !== undefined ? q.weight : 5
             });
 
             if (error) {
