@@ -1755,7 +1755,7 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
               </div>
 
               {/* 학습 진도 체크 - 모의시험 모드에서는 숨김 */}
-              {currentQuestion && examMode !== 'timedRandom' && (
+              {currentQuestion && (examMode as string) !== 'timedRandom' && (
                 <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-yellow-500">⭐</span>

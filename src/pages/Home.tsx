@@ -10,8 +10,6 @@ import {
   getMemberById,
   logout,
   initializeData,
-  clearWrongAnswers,
-  clearStatistics,
   getReviewQuestions,
   clearAllData,
 } from '../services/storage';
