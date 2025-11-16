@@ -32,3 +32,5 @@ readme_ecbt.md
 # 원소스 파일 (커밋 금지)
 source/원소스/
 source/**/원소스/
+
+.vercel

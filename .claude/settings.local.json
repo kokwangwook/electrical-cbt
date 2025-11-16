@@ -36,7 +36,9 @@
       "Bash(cmd /c:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(npx vite build:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
