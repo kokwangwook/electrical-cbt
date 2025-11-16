@@ -1671,8 +1671,8 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
                   <div className={isMobile ? 'grid grid-cols-2 gap-2' : 'flex gap-2 flex-wrap'}>
                     {[
                       { value: 1, label: '전혀 모름' },
-                      { value: 2, label: '어려움' },
-                      { value: 3, label: '매우 어려움' },
+                      { value: 2, label: '매우 어려움' },
+                      { value: 3, label: '어려움' },
                       { value: 4, label: '반복 학습 필요' },
                       { value: 5, label: '거의 이해' },
                       { value: 6, label: '완벽 이해' },
