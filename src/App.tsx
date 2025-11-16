@@ -227,7 +227,6 @@ function App() {
       {state === 'home' && (
         <Home
           onStartExam={handleStartExam}
-          onGoToWrongAnswers={handleGoToWrongAnswers}
           onGoToStatistics={handleGoToStatistics}
         />
       )}
