@@ -1,15 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import type { Question } from './types';
-import Home from './pages/Home';
-import Exam from './pages/Exam';
-import Result from './pages/Result';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Admin from './pages/Admin';
-import WrongAnswers from './pages/WrongAnswers';
-import Statistics from './pages/Statistics';
 import { getCurrentUser, initializeData, saveCurrentExamSession, getCurrentExamSession, getQuestions } from './services/storage';
 import type { ExamSession } from './types';
+
+// Lazy load pages for code splitting
+const Home = lazy(() => import('./pages/Home'));
+const Exam = lazy(() => import('./pages/Exam'));
+const Result = lazy(() => import('./pages/Result'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Admin = lazy(() => import('./pages/Admin'));
+const WrongAnswers = lazy(() => import('./pages/WrongAnswers'));
+const Statistics = lazy(() => import('./pages/Statistics'));
+
+// Loading component
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+      <p className="text-gray-600">로딩 중...</p>
+    </div>
+  </div>
+);
 
 type AppState = 'login' | 'register' | 'home' | 'exam' | 'result' | 'admin' | 'wrongAnswers' | 'statistics';
 
@@ -18,7 +30,7 @@ function App() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<(number | null)[]>([]);
   const [startTime, setStartTime] = useState<number>(0);
-  const [examMode, setExamMode] = useState<'timedRandom' | 'untimedRandom' | 'category' | 'wrong'>('timedRandom');
+  const [examMode, setExamMode] = useState<'timedRandom' | 'untimedRandom' | 'category' | 'wrong' | 'review'>('timedRandom');
 
   // 초기화
   useEffect(() => {
@@ -84,11 +96,11 @@ function App() {
     setState('login');
   };
 
-  const handleStartExam = (selectedQuestions: Question[], mode: 'timedRandom' | 'untimedRandom' | 'category' | 'wrong') => {
+  const handleStartExam = (selectedQuestions: Question[], mode: 'timedRandom' | 'untimedRandom' | 'category' | 'wrong' | 'review') => {
     setQuestions(selectedQuestions);
     setExamMode(mode);
     setStartTime(Date.now());
-    
+
     // 세션에 모드 저장
     const session: ExamSession = {
       questions: selectedQuestions,
@@ -186,45 +198,47 @@ function App() {
   const timeSpent = state === 'result' ? Math.floor((Date.now() - startTime) / 1000) : 0;
 
   return (
-    <div>
-      {state === 'login' && (
-        <Login
-          onLoginSuccess={handleLoginSuccess}
-          onGoToRegister={handleGoToRegister}
-        />
-      )}
-      {state === 'register' && (
-        <Register
-          onRegisterSuccess={handleRegisterSuccess}
-          onBackToLogin={handleBackToLogin}
-        />
-      )}
-      {state === 'home' && (
-        <Home
-          onStartExam={handleStartExam}
-          onGoToWrongAnswers={handleGoToWrongAnswers}
-          onGoToStatistics={handleGoToStatistics}
-        />
-      )}
-      {state === 'exam' && (
-        <Exam questions={questions} onComplete={handleCompleteExam} onExit={handleExit} />
-      )}
-      {state === 'result' && (
-        <Result
-          questions={questions}
-          answers={answers}
-          timeSpent={timeSpent}
-          mode={examMode}
-          onRestart={handleRestart}
-          onGoHome={handleExit}
-        />
-      )}
-      {state === 'wrongAnswers' && (
-        <WrongAnswers onBack={handleBackToHome} onStartReview={handleStartReview} />
-      )}
-      {state === 'statistics' && <Statistics onBack={handleBackToHome} />}
-      {state === 'admin' && <Admin />}
-    </div>
+    <Suspense fallback={<LoadingSpinner />}>
+      <div>
+        {state === 'login' && (
+          <Login
+            onLoginSuccess={handleLoginSuccess}
+            onGoToRegister={handleGoToRegister}
+          />
+        )}
+        {state === 'register' && (
+          <Register
+            onRegisterSuccess={handleRegisterSuccess}
+            onBackToLogin={handleBackToLogin}
+          />
+        )}
+        {state === 'home' && (
+          <Home
+            onStartExam={handleStartExam}
+            onGoToWrongAnswers={handleGoToWrongAnswers}
+            onGoToStatistics={handleGoToStatistics}
+          />
+        )}
+        {state === 'exam' && (
+          <Exam questions={questions} onComplete={handleCompleteExam} onExit={handleExit} />
+        )}
+        {state === 'result' && (
+          <Result
+            questions={questions}
+            answers={answers}
+            timeSpent={timeSpent}
+            mode={examMode}
+            onRestart={handleRestart}
+            onGoHome={handleExit}
+          />
+        )}
+        {state === 'wrongAnswers' && (
+          <WrongAnswers onBack={handleBackToHome} onStartReview={handleStartReview} />
+        )}
+        {state === 'statistics' && <Statistics onBack={handleBackToHome} />}
+        {state === 'admin' && <Admin />}
+      </div>
+    </Suspense>
   );
 }
 

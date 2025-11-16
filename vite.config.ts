@@ -30,7 +30,20 @@ export default defineConfig({
         // 매번 새로운 파일명 생성
         entryFileNames: `assets/[name].[hash].js`,
         chunkFileNames: `assets/[name].[hash].js`,
-        assetFileNames: `assets/[name].[hash].[ext]`
+        assetFileNames: `assets/[name].[hash].[ext]`,
+        // 수동 청크 분할로 번들 크기 최적화
+        manualChunks: {
+          // React 코어 라이브러리
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          // 수학 수식 렌더링
+          'vendor-katex': ['katex', 'react-katex'],
+          // 차트 라이브러리
+          'vendor-recharts': ['recharts'],
+          // PDF 파싱 (가장 큰 라이브러리)
+          'vendor-pdf': ['pdfjs-dist'],
+          // Supabase
+          'vendor-supabase': ['@supabase/supabase-js'],
+        }
       }
     }
   }
