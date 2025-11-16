@@ -114,7 +114,7 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
   let initialLearningProgress: { [key: number]: number } = {};
   let initialStartTime = Date.now();
   let initialRemainingTime = 60 * 60; // 60분 = 3600초
-  let initialMode: 'timedRandom' | 'untimedRandom' | 'random' | 'category' | 'wrong' = determinedMode;
+  let initialMode: 'timedRandom' | 'untimedRandom' | 'random' | 'category' | 'wrong' | 'review' = determinedMode;
   const duration = 60 * 60; // 60분
   
   if (shouldRestoreSession) {
