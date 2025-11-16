@@ -3013,6 +3013,11 @@ export default function Admin() {
                             console.error('업로드 오류:', result.errors);
                           }
                           setUploadPreview([]);
+                          // 문제 수 자동 갱신
+                          if (result.success > 0) {
+                            const newCount = await getSupabaseQuestionCount();
+                            setSupabaseQuestionCount(newCount);
+                          }
                         } catch (err) {
                           setUploadStatus(`❌ 저장 실패: ${err}`);
                         } finally {
