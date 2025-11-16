@@ -18,7 +18,7 @@ function App() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<(number | null)[]>([]);
   const [startTime, setStartTime] = useState<number>(0);
-  const [examMode, setExamMode] = useState<'timedRandom' | 'untimedRandom' | 'category' | 'wrong'>('timedRandom');
+  const [examMode, setExamMode] = useState<'timedRandom' | 'untimedRandom' | 'category' | 'wrong' | 'review'>('timedRandom');
 
   // 초기화
   useEffect(() => {
@@ -84,7 +84,7 @@ function App() {
     setState('login');
   };
 
-  const handleStartExam = (selectedQuestions: Question[], mode: 'timedRandom' | 'untimedRandom' | 'category' | 'wrong') => {
+  const handleStartExam = (selectedQuestions: Question[], mode: 'timedRandom' | 'untimedRandom' | 'category' | 'wrong' | 'review') => {
     setQuestions(selectedQuestions);
     setExamMode(mode);
     setStartTime(Date.now());
