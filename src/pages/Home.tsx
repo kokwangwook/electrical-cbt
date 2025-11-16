@@ -18,7 +18,10 @@ import {
   fetchRandom60Questions,
   fetchRandomQuestions,
   getCategoryCounts,
+  fetchAllQuestions,
 } from '../services/supabaseService';
+import { getExamConfig } from '../services/examConfigService';
+import { selectBalancedQuestionsByWeight } from '../services/weightedRandomService';
 
 interface HomeProps {
   onStartExam: (questions: Question[], mode: 'timedRandom' | 'untimedRandom' | 'category' | 'wrong' | 'review') => void;
@@ -144,9 +147,39 @@ export default function Home({ onStartExam, onGoToStatistics }: HomeProps) {
       let examQuestions: Question[] = [];
 
       if (learningMode === 'untimedRandom') {
-        console.log('🎲 랜덤 60문제: 서버에서 직접 60문제 가져오기');
-        examQuestions = await fetchRandom60Questions();
-        console.log(`✅ 서버에서 가져온 문제: ${examQuestions.length}개`);
+        // 가중치 기반 출제 설정 확인
+        const examConfig = getExamConfig();
+
+        if (examConfig.weightBasedEnabled) {
+          console.log('🎯 가중치 기반 출제 모드 활성화');
+          console.log(`📋 모드: ${examConfig.mode}, 선택된 가중치: ${examConfig.selectedWeights.join(', ')}`);
+
+          // 모든 문제 가져오기
+          const allQuestions = await fetchAllQuestions();
+          console.log(`📚 서버에서 전체 문제 로드: ${allQuestions.length}개`);
+
+          if (allQuestions.length === 0) {
+            alert('❌ 서버에서 문제를 가져올 수 없습니다.\n\n네트워크 연결을 확인하거나 관리자에게 문의하세요.');
+            setLoading(false);
+            return;
+          }
+
+          // 가중치 기반 문제 선택
+          examQuestions = selectBalancedQuestionsByWeight(allQuestions, 60, examConfig);
+          console.log(`✅ 가중치 기반 선택 완료: ${examQuestions.length}개`);
+
+          // 선택된 문제의 가중치 분포 로그
+          const weightDist: { [key: number]: number } = {};
+          examQuestions.forEach(q => {
+            const w = q.weight || 5;
+            weightDist[w] = (weightDist[w] || 0) + 1;
+          });
+          console.log('📊 선택된 문제 가중치 분포:', weightDist);
+        } else {
+          console.log('🎲 랜덤 60문제: 서버에서 직접 60문제 가져오기 (가중치 비활성화)');
+          examQuestions = await fetchRandom60Questions();
+          console.log(`✅ 서버에서 가져온 문제: ${examQuestions.length}개`);
+        }
 
         if (examQuestions.length < 60) {
           alert(
@@ -244,8 +277,40 @@ export default function Home({ onStartExam, onGoToStatistics }: HomeProps) {
       }
 
       console.log('🎯 실전 모의고사: 서버에서 직접 60문제 가져오기');
-      const examQuestions = await fetchRandom60Questions();
-      console.log(`✅ 서버에서 가져온 문제: ${examQuestions.length}개`);
+
+      // 가중치 기반 출제 설정 확인
+      const examConfig = getExamConfig();
+      let examQuestions: Question[];
+
+      if (examConfig.weightBasedEnabled) {
+        console.log('🎯 가중치 기반 출제 모드 활성화 (실전 모의고사)');
+        console.log(`📋 모드: ${examConfig.mode}, 선택된 가중치: ${examConfig.selectedWeights.join(', ')}`);
+
+        // 모든 문제 가져오기
+        const allQuestions = await fetchAllQuestions();
+        console.log(`📚 서버에서 전체 문제 로드: ${allQuestions.length}개`);
+
+        if (allQuestions.length === 0) {
+          alert('❌ 서버에서 문제를 가져올 수 없습니다.\n\n네트워크 연결을 확인하거나 관리자에게 문의하세요.');
+          setLoading(false);
+          return;
+        }
+
+        // 가중치 기반 문제 선택
+        examQuestions = selectBalancedQuestionsByWeight(allQuestions, 60, examConfig);
+        console.log(`✅ 가중치 기반 선택 완료: ${examQuestions.length}개`);
+
+        // 선택된 문제의 가중치 분포 로그
+        const weightDist: { [key: number]: number } = {};
+        examQuestions.forEach(q => {
+          const w = q.weight || 5;
+          weightDist[w] = (weightDist[w] || 0) + 1;
+        });
+        console.log('📊 선택된 문제 가중치 분포:', weightDist);
+      } else {
+        examQuestions = await fetchRandom60Questions();
+        console.log(`✅ 서버에서 가져온 문제: ${examQuestions.length}개 (가중치 비활성화)`);
+      }
 
       if (examQuestions.length < 60) {
         alert(

@@ -79,6 +79,52 @@ export const fetchRandom60Questions = async (): Promise<Question[]> => {
 };
 
 /**
+ * 모든 문제 가져오기 (가중치 기반 출제용)
+ */
+export const fetchAllQuestions = async (): Promise<Question[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('questions')
+      .select('*')
+      .order('id');
+
+    if (error) {
+      console.error('모든 문제 조회 실패:', error);
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      console.warn('문제가 없습니다.');
+      return [];
+    }
+
+    // Supabase 형식을 로컬 형식으로 변환
+    return data.map(q => ({
+      id: q.id,
+      category: q.category,
+      standard: q.standard || undefined,
+      detailItem: q.detailItem || undefined,
+      question: q.question,
+      option1: q.option1,
+      option2: q.option2,
+      option3: q.option3,
+      option4: q.option4,
+      answer: q.answer,
+      explanation: q.explanation,
+      imageUrl: q.imageUrl || undefined,
+      hasImage: q.hasImage || false,
+      mustInclude: q.mustInclude || false,
+      mustExclude: q.mustExclude || false,
+      weight: q.weight || 5,
+      source: q.source || undefined
+    }));
+  } catch (err) {
+    console.error('모든 문제 조회 오류:', err);
+    return [];
+  }
+};
+
+/**
  * 카테고리별 문제 수 가져오기 (서버에서 COUNT)
  */
 export const getCategoryCounts = async (): Promise<{
