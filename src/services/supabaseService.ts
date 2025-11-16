@@ -250,7 +250,7 @@ export const insertQuestions = async (
     // 선택적 필드 추가
     if (firstQ.standard) fullInsertData.standard = firstQ.standard;
     if (firstQ.detailItem) fullInsertData.detail_item = firstQ.detailItem;
-    if (firstQ.weight && firstQ.weight !== 5) fullInsertData.weight = firstQ.weight;
+    if (firstQ.weight !== undefined) fullInsertData.weight = firstQ.weight; // weight는 항상 포함
     if (firstQ.source) fullInsertData.source = firstQ.source;
 
     const { error: firstError } = await supabase.from('questions').insert(fullInsertData);
@@ -336,7 +336,7 @@ export const insertQuestions = async (
 
       if (q.standard) insertData.standard = q.standard;
       if (q.detailItem) insertData.detail_item = q.detailItem;
-      if (q.weight && q.weight !== 5) insertData.weight = q.weight;
+      if (q.weight !== undefined) insertData.weight = q.weight; // weight는 항상 포함
       if (q.source) insertData.source = q.source;
 
       const { error } = await supabase.from('questions').insert(insertData);
