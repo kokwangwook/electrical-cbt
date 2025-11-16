@@ -426,179 +426,156 @@ export default function Home({ onStartExam, onGoToWrongAnswers, onGoToStatistics
               </div>
             </div>
 
-            {/* 시험 모드 선택 */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">시험 모드 선택</label>
-              <div className="space-y-2">
-                {/* B-2: 랜덤 60문제 (시간 제한 없음) - 초록색 */}
-                <div>
-                  <label className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-colors ${
-                    mode === 'untimedRandom'
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 hover:bg-green-50 hover:border-green-300'
-                  }`}>
-                    <input
-                      type="radio"
-                      name="mode"
-                      value="untimedRandom"
-                      checked={mode === 'untimedRandom'}
-                      onChange={() => setMode('untimedRandom')}
-                      className="mr-3 w-4 h-4"
-                    />
-                    <div className="flex-1">
-                      <div className="font-semibold text-green-700">🎲 랜덤 60문제 (시간 제한 없음)</div>
-                      <div className="text-sm text-green-600">
-                        전기이론 20 + 전기기기 20 + 전기설비 20 = 총 60문제
-                      </div>
-                      <div className="text-xs text-green-500 mt-1">
-                        ⏰ 시간 제한 없이 자유롭게 학습
-                      </div>
+            {/* 📚 학습 모드 섹션 */}
+            <div className="mb-8">
+              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                📚 학습 모드
+              </h2>
+              <div className="space-y-3">
+                {/* 1. 랜덤 60문제 (시간 제한 없음) */}
+                <div className="p-4 border-2 border-green-200 bg-green-50 rounded-lg">
+                  <div className="mb-3">
+                    <div className="font-semibold text-green-800 text-lg">🎲 랜덤 60문제 (시간 제한 없음)</div>
+                    <div className="text-sm text-green-700 mt-1">
+                      전기이론 20 + 전기기기 20 + 전기설비 20 = 총 60문제
                     </div>
-                  </label>
+                    <div className="text-xs text-green-600 mt-1">
+                      ⏰ 시간 제한 없이 자유롭게 학습
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setMode('untimedRandom');
+                      setTimeout(handleStartExam, 100);
+                    }}
+                    disabled={loading}
+                    className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                  >
+                    {loading && mode === 'untimedRandom' ? '불러오는 중...' : '▶️ 학습 시작'}
+                  </button>
                   
-                  {/* 이전 시험 계속하기 버튼 - 랜덤 60문제 영역 아래 */}
+                  {/* 이전 시험 계속하기 버튼 */}
                   {hasPreviousSession && previousSession && previousSession.mode === 'untimedRandom' && (
-                    <div className="mt-2 ml-7">
+                    <div className="mt-3">
                       <button
                         onClick={handleResumePreviousExam}
-                        className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold rounded-lg transition-colors duration-200 flex items-center gap-2 shadow-md"
+                        className="w-full bg-green-500 hover:bg-green-600 text-white text-sm font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                       >
                         <span>📖 이전 시험 계속하기</span>
+                        <span className="text-xs">
+                          ({Object.keys(previousSession.answers || {}).length}/{previousSession.questions.length})
+                        </span>
                       </button>
-                      <div className="mt-1 text-xs text-green-600 font-medium">
-                        진행: {Object.keys(previousSession.answers || {}).length}/{previousSession.questions.length}
-                      </div>
                     </div>
                   )}
                 </div>
 
-                {/* C-1: 카테고리별 집중 학습 */}
-                <label className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-colors ${
-                  mode === 'category'
-                    ? 'border-purple-500 bg-purple-50'
-                    : 'border-gray-200 hover:bg-gray-50'
-                }`}>
-                  <input
-                    type="radio"
-                    name="mode"
-                    value="category"
-                    checked={mode === 'category'}
-                    onChange={() => setMode('category')}
-                    className="mr-3 w-4 h-4"
-                  />
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-800">📚 카테고리별 집중 학습</div>
-                    <div className="text-sm text-gray-600">선택한 카테고리에서 20문제 출제</div>
+                {/* 2. 카테고리별 집중 학습 */}
+                <div className="p-4 border-2 border-purple-200 bg-purple-50 rounded-lg">
+                  <div className="mb-3">
+                    <div className="font-semibold text-purple-800 text-lg">📚 카테고리별 집중 학습</div>
+                    <div className="text-sm text-purple-700 mt-1">
+                      선택한 카테고리에서 20문제 출제
+                    </div>
                   </div>
-                </label>
+                  <div className="mb-3">
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="w-full p-2 border-2 border-purple-300 rounded-lg bg-white text-gray-800 font-medium"
+                    >
+                      <option value="전기이론">전기이론</option>
+                      <option value="전기기기">전기기기</option>
+                      <option value="전기설비">전기설비</option>
+                    </select>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setMode('category');
+                      setTimeout(handleStartExam, 100);
+                    }}
+                    disabled={loading}
+                    className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                  >
+                    {loading && mode === 'category' ? '불러오는 중...' : '▶️ 학습 시작'}
+                  </button>
+                </div>
 
-                {/* C-2: 스마트 오답노트 복습 */}
-                <label className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-colors ${
-                  mode === 'wrong'
-                    ? 'border-pink-500 bg-pink-50'
-                    : 'border-gray-200 hover:bg-gray-50'
-                }`}>
-                  <input
-                    type="radio"
-                    name="mode"
-                    value="wrong"
-                    checked={mode === 'wrong'}
-                    onChange={() => setMode('wrong')}
-                    className="mr-3 w-4 h-4"
-                  />
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-800">📝 스마트 오답노트 복습</div>
-                    <div className="text-sm text-gray-600">
+                {/* 3. 스마트 오답노트 복습 */}
+                <div className="p-4 border-2 border-pink-200 bg-pink-50 rounded-lg">
+                  <div className="mb-3">
+                    <div className="font-semibold text-pink-800 text-lg">📝 스마트 오답노트 복습</div>
+                    <div className="text-sm text-pink-700 mt-1">
                       틀렸던 문제만 재출제 (최대 20문제)
                     </div>
                   </div>
-                </label>
+                  <button
+                    onClick={() => {
+                      setMode('wrong');
+                      setTimeout(handleStartExam, 100);
+                    }}
+                    disabled={loading}
+                    className="w-full bg-pink-600 hover:bg-pink-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                  >
+                    {loading && mode === 'wrong' ? '불러오는 중...' : '▶️ 복습 시작'}
+                  </button>
+                </div>
 
-                {/* C-3: 학습 진도 기반 복습 */}
-                <label className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition-colors ${
-                  mode === 'review'
-                    ? 'border-indigo-500 bg-indigo-50'
-                    : 'border-gray-200 hover:bg-gray-50'
-                }`}>
-                  <input
-                    type="radio"
-                    name="mode"
-                    value="review"
-                    checked={mode === 'review'}
-                    onChange={() => setMode('review')}
-                    className="mr-3 w-4 h-4"
-                  />
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-800">📚 학습 진도 기반 복습</div>
-                    <div className="text-sm text-gray-600">
+                {/* 4. 학습 진도 기반 복습 */}
+                <div className="p-4 border-2 border-indigo-200 bg-indigo-50 rounded-lg">
+                  <div className="mb-3">
+                    <div className="font-semibold text-indigo-800 text-lg">📊 학습 진도 기반 복습</div>
+                    <div className="text-sm text-indigo-700 mt-1">
                       학습 진도 1-5 문제만 복습 (완벽 이해 제외)
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-xs text-indigo-600 mt-1">
                       전기이론 20 + 전기기기 20 + 전기설비 20 = 총 60문제
                     </div>
                   </div>
-                </label>
-
-                {/* B-1: 실전 모의고사 (60분 제한) - 파란색 강조 */}
-                <label className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                  mode === 'timedRandom'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:bg-blue-50 hover:border-blue-300'
-                }`}>
-                  <input
-                    type="radio"
-                    name="mode"
-                    value="timedRandom"
-                    checked={mode === 'timedRandom'}
-                    onChange={() => setMode('timedRandom')}
-                    className="mr-3 w-4 h-4"
-                  />
-                  <div className="flex-1">
-                    <div className="font-bold text-blue-700 text-lg">🎯 실전 모의고사 (60분 제한)</div>
-                    <div className="text-sm text-blue-600 mt-1">
-                      전기이론 20 + 전기기기 20 + 전기설비 20 = 총 60문제
-                    </div>
-                    <div className="text-xs text-blue-500 mt-1">
-                      ⏱️ 실전과 동일한 60분 타이머 적용
-                    </div>
-                  </div>
-                </label>
+                  <button
+                    onClick={() => {
+                      setMode('review');
+                      setTimeout(handleStartExam, 100);
+                    }}
+                    disabled={loading}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                  >
+                    {loading && mode === 'review' ? '불러오는 중...' : '▶️ 복습 시작'}
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* 카테고리 선택 (카테고리별 모드 시) */}
-            {mode === 'category' && (
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">카테고리 선택</label>
-                <div className="space-y-2">
-                  {['전기이론', '전기기기', '전기설비'].map(cat => (
-                    <label
-                      key={cat}
-                      className="flex items-center p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                    >
-                      <input
-                        type="radio"
-                        name="category"
-                        value={cat}
-                        checked={selectedCategory === cat}
-                        onChange={() => setSelectedCategory(cat)}
-                        className="mr-3 w-4 h-4"
-                      />
-                      <span className="font-medium text-gray-800">{cat}</span>
-                    </label>
-                  ))}
+            {/* 🎯 시험 모드 섹션 */}
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                🎯 시험 모드
+              </h2>
+              <div className="space-y-3">
+                {/* 실전 모의고사 (60분 제한) */}
+                <div className="p-4 border-2 border-red-300 bg-red-50 rounded-lg">
+                  <div className="mb-3">
+                    <div className="font-bold text-red-800 text-lg">⏱️ 실전 모의고사 (60분 제한)</div>
+                    <div className="text-sm text-red-700 mt-1">
+                      전기이론 20 + 전기기기 20 + 전기설비 20 = 총 60문제
+                    </div>
+                    <div className="text-xs text-red-600 mt-1">
+                      ⏰ 실전과 동일한 60분 타이머 적용
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setMode('timedRandom');
+                      setTimeout(handleStartExam, 100);
+                    }}
+                    disabled={loading}
+                    className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-bold py-4 px-6 rounded-lg transition-colors text-lg"
+                  >
+                    {loading && mode === 'timedRandom' ? '불러오는 중...' : '🚀 시험 시작'}
+                  </button>
                 </div>
               </div>
-            )}
-
-            {/* 시작 버튼 */}
-            <button
-              onClick={handleStartExam}
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-4 px-6 rounded-lg transition-colors duration-200 text-lg"
-            >
-              {loading ? (loadingProgress || '서버에서 문제 불러오는 중...') : '🚀 시험 시작'}
-            </button>
+            </div>
 
             {/* 학습 도구 버튼 */}
             <div className="flex gap-4 mt-6">
