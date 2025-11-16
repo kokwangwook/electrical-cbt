@@ -45,6 +45,8 @@ import {
   insertQuestions,
   fetchQuestionsFromGoogleSheet,
   parseCSVToQuestions,
+  getFeedbacksFromSupabase,
+  deleteFeedbackFromSupabase,
 } from '../services/supabaseService';
 
 export default function Admin() {
@@ -99,6 +101,7 @@ export default function Admin() {
 
   // 제보 게시판
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [allFeedbacksCount, setAllFeedbacksCount] = useState<{ bug: number; suggestion: number; question: number }>({ bug: 0, suggestion: 0, question: 0 });
 
   // 동기화
   const [syncLoading, setSyncLoading] = useState(false);
@@ -210,14 +213,50 @@ export default function Admin() {
     setLoginHistory(history);
   };
 
-  const loadFeedbacks = () => {
-    const allFeedbacks = getFeedbacks();
-    // 하위 탭에 따라 필터링
-    if (feedbackSubTab === 'bug' || feedbackSubTab === 'suggestion' || feedbackSubTab === 'question') {
-      const filtered = allFeedbacks.filter(f => f.type === feedbackSubTab);
-      setFeedbacks(filtered);
-    } else {
-      setFeedbacks(allFeedbacks);
+  const loadFeedbacks = async () => {
+    try {
+      // Supabase에서 먼저 시도
+      const supabaseFeedbacks = await getFeedbacksFromSupabase();
+      let allFeedbacks: Feedback[];
+
+      if (supabaseFeedbacks.length > 0) {
+        allFeedbacks = supabaseFeedbacks;
+        console.log('✅ Supabase에서 제보 로드 (관리자):', supabaseFeedbacks.length);
+      } else {
+        // Supabase 실패 시 로컬에서 로드
+        allFeedbacks = getFeedbacks();
+        console.log('📦 로컬에서 제보 로드 (관리자):', allFeedbacks.length);
+      }
+
+      // 전체 개수 업데이트
+      setAllFeedbacksCount({
+        bug: allFeedbacks.filter(f => f.type === 'bug').length,
+        suggestion: allFeedbacks.filter(f => f.type === 'suggestion').length,
+        question: allFeedbacks.filter(f => f.type === 'question').length,
+      });
+
+      // 하위 탭에 따라 필터링
+      if (feedbackSubTab === 'bug' || feedbackSubTab === 'suggestion' || feedbackSubTab === 'question') {
+        const filtered = allFeedbacks.filter(f => f.type === feedbackSubTab);
+        setFeedbacks(filtered);
+      } else {
+        setFeedbacks(allFeedbacks);
+      }
+    } catch (error) {
+      console.error('제보 로드 실패:', error);
+      // 오류 시 로컬에서 로드
+      const localFeedbacks = getFeedbacks();
+      setAllFeedbacksCount({
+        bug: localFeedbacks.filter(f => f.type === 'bug').length,
+        suggestion: localFeedbacks.filter(f => f.type === 'suggestion').length,
+        question: localFeedbacks.filter(f => f.type === 'question').length,
+      });
+      if (feedbackSubTab === 'bug' || feedbackSubTab === 'suggestion' || feedbackSubTab === 'question') {
+        const filtered = localFeedbacks.filter(f => f.type === feedbackSubTab);
+        setFeedbacks(filtered);
+      } else {
+        setFeedbacks(localFeedbacks);
+      }
     }
   };
 
@@ -1296,7 +1335,7 @@ export default function Admin() {
                   : 'text-gray-600 hover:text-gray-800'
               }`}
             >
-              📋 제보 게시판 ({getFeedbacks().length})
+              📋 제보 게시판 ({allFeedbacksCount.bug + allFeedbacksCount.suggestion + allFeedbacksCount.question})
             </button>
             <button
               onClick={() => setActiveTab('upload')}
@@ -2723,7 +2762,7 @@ export default function Admin() {
                       : 'text-gray-600 hover:text-gray-800'
                   }`}
                 >
-                  오류 제보 ({getFeedbacks().filter(f => f.type === 'bug').length})
+                  오류 제보 ({allFeedbacksCount.bug})
                 </button>
                 <button
                   onClick={() => setFeedbackSubTab('suggestion')}
@@ -2733,7 +2772,7 @@ export default function Admin() {
                       : 'text-gray-600 hover:text-gray-800'
                   }`}
                 >
-                  건의사항 ({getFeedbacks().filter(f => f.type === 'suggestion').length})
+                  건의사항 ({allFeedbacksCount.suggestion})
                 </button>
                 <button
                   onClick={() => setFeedbackSubTab('question')}
@@ -2743,7 +2782,7 @@ export default function Admin() {
                       : 'text-gray-600 hover:text-gray-800'
                   }`}
                 >
-                  문의사항 ({getFeedbacks().filter(f => f.type === 'question').length})
+                  문의사항 ({allFeedbacksCount.question})
                 </button>
               </div>
 
@@ -2780,10 +2819,15 @@ export default function Admin() {
                             {new Date(feedback.timestamp).toLocaleString('ko-KR')}
                           </span>
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               if (window.confirm('이 제보를 삭제하시겠습니까?')) {
-                                deleteFeedback(feedback.id);
-                                loadFeedbacks();
+                                // Supabase에서 먼저 삭제 시도
+                                const supabaseSuccess = await deleteFeedbackFromSupabase(feedback.id);
+                                if (!supabaseSuccess) {
+                                  // Supabase 실패 시 로컬에서 삭제
+                                  deleteFeedback(feedback.id);
+                                }
+                                await loadFeedbacks();
                               }
                             }}
                             className="text-red-500 hover:text-red-700 text-sm px-2 py-1"
