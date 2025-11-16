@@ -348,8 +348,20 @@ export default function Admin() {
         questionToAdd.detailItem = matchedDetailItem;
       }
     }
-    
+
     addQuestion(questionToAdd);
+
+    // Supabase에 동기화 (비동기)
+    insertQuestions([questionToAdd]).then(result => {
+      if (result.success > 0) {
+        console.log('✅ Supabase에 문제 추가 성공');
+      } else {
+        console.warn('⚠️ Supabase에 문제 추가 실패:', result.errors);
+      }
+    }).catch(err => {
+      console.warn('⚠️ Supabase 동기화 오류:', err);
+    });
+
     loadQuestions();
     setShowAddModal(false);
     resetNewQuestion();
@@ -1667,6 +1679,10 @@ export default function Admin() {
                                     e.stopPropagation();
                                     const updatedQuestion = { ...q, mustInclude: e.target.checked };
                                     updateQuestion(updatedQuestion);
+                                    // Supabase 동기화 (비동기)
+                                    updateQuestionInSupabase(updatedQuestion).catch(err => {
+                                      console.warn('⚠️ Supabase 동기화 오류:', err);
+                                    });
                                     loadQuestions();
                                   }}
                                   onClick={e => e.stopPropagation()}
@@ -1683,6 +1699,10 @@ export default function Admin() {
                                     e.stopPropagation();
                                     const updatedQuestion = { ...q, mustExclude: e.target.checked };
                                     updateQuestion(updatedQuestion);
+                                    // Supabase 동기화 (비동기)
+                                    updateQuestionInSupabase(updatedQuestion).catch(err => {
+                                      console.warn('⚠️ Supabase 동기화 오류:', err);
+                                    });
                                     loadQuestions();
                                   }}
                                   onClick={e => e.stopPropagation()}
@@ -1800,6 +1820,10 @@ export default function Admin() {
                               onChange={e => {
                                 const updatedQuestion = { ...q, mustInclude: e.target.checked };
                                 updateQuestion(updatedQuestion);
+                                // Supabase 동기화 (비동기)
+                                updateQuestionInSupabase(updatedQuestion).catch(err => {
+                                  console.warn('⚠️ Supabase 동기화 오류:', err);
+                                });
                                 loadQuestions();
                               }}
                               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
@@ -1813,6 +1837,10 @@ export default function Admin() {
                               onChange={e => {
                                 const updatedQuestion = { ...q, mustExclude: e.target.checked };
                                 updateQuestion(updatedQuestion);
+                                // Supabase 동기화 (비동기)
+                                updateQuestionInSupabase(updatedQuestion).catch(err => {
+                                  console.warn('⚠️ Supabase 동기화 오류:', err);
+                                });
                                 loadQuestions();
                               }}
                               className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
