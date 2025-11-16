@@ -49,6 +49,7 @@ import {
   updateQuestionInSupabase,
   deleteQuestionFromSupabase,
   saveMemberToSupabase,
+  getLoginHistory as getSupabaseLoginHistory,
 } from '../services/supabaseService';
 import { useFeedbacks } from '../hooks/useFeedbacks';
 
@@ -245,9 +246,25 @@ export default function Admin() {
     setMembers(allMembers);
   };
 
-  const loadLoginHistory = () => {
-    const history = getLoginHistory();
-    setLoginHistory(history);
+  const loadLoginHistory = async () => {
+    // Supabase에서 로그인 기록 가져오기 (IP 주소 포함)
+    try {
+      const supabaseHistory = await getSupabaseLoginHistory();
+      if (supabaseHistory.length > 0) {
+        setLoginHistory(supabaseHistory);
+        console.log('✅ Supabase 로그인 기록 로드:', supabaseHistory.length);
+      } else {
+        // Supabase에 없으면 로컬에서 가져오기
+        const localHistory = getLoginHistory();
+        setLoginHistory(localHistory);
+        console.log('ℹ️ 로컬 로그인 기록 로드:', localHistory.length);
+      }
+    } catch (err) {
+      console.error('로그인 기록 로드 실패:', err);
+      // 실패 시 로컬에서 가져오기
+      const localHistory = getLoginHistory();
+      setLoginHistory(localHistory);
+    }
   };
 
   // loadFeedbacks는 useFeedbacks 훅에서 제공됨
