@@ -274,7 +274,7 @@ export default function Home({ onStartExam, onGoToStatistics }: HomeProps) {
       const width = 1400;
       const height = 900;
       const left = (window.screen.width - width) / 2;
-      const top = (window.screen.height - height) / 2;
+      const top = 100; // Y축 위치를 100픽셀로 고정
 
       const newWindow = window.open(
         `${window.location.origin}${window.location.pathname}?mode=exam`,
