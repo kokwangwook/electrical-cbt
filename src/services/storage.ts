@@ -998,6 +998,9 @@ export function updateGlobalLearningProgress(questionId: number, progress: numbe
 }
 
 // ========== 문제별 답변 기록 관리 ==========
+// ✅ 2025-01-17: 사용자 답변 영구 저장 기능 구현됨
+// 사용자가 문제를 풀 때마다 선택한 답변이 localStorage에 자동 저장됩니다.
+// 다음번 로그인 시 이전에 선택했던 답변이 자동으로 표시됩니다.
 
 /**
  * 문제별 마지막 선택 답변 가져오기
@@ -1049,6 +1052,8 @@ export function saveQuestionAnswerHistory(history: { [questionId: number]: numbe
 
 /**
  * 특정 문제의 마지막 선택 답변 업데이트
+ * ✅ IMPORTANT: 이 함수는 Exam.tsx의 handleAnswerSelect에서 자동 호출됩니다.
+ * 사용자가 답변을 선택할 때마다 localStorage에 즉시 저장됩니다.
  * @param questionId 문제 ID
  * @param answer 답변 번호 (1-4)
  */

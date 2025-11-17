@@ -83,7 +83,8 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
   // 전역 문제 이해도 불러오기 (새로운 세션이어도 이전에 체크한 이해도 표시)
   const globalLearningProgress = getGlobalLearningProgress();
 
-  // 전역 답변 기록 불러오기 (새로운 세션이어도 이전에 선택한 답변 표시)
+  // ✅ 2025-01-17: 전역 답변 기록 불러오기 (답변 영구 저장 기능)
+  // 새로운 세션이어도 이전에 선택한 답변이 자동으로 표시됩니다.
   const questionAnswerHistory = getQuestionAnswerHistory();
 
   // 정렬된 문제 사용 (세션 복원 시 "완벽 이해" 문제 제외)
@@ -413,7 +414,9 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
       ...answers,
       [questionId]: answer,
     });
+    // ✅ 2025-01-17: 답변 영구 저장 기능 활성화
     // 전역 답변 기록에도 저장 (다음에 이 문제를 다시 풀 때 이전 답변 표시)
+    // updateQuestionAnswer()는 즉시 localStorage에 저장합니다.
     updateQuestionAnswer(questionId, answer);
   };
 
