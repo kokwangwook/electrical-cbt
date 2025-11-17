@@ -1997,12 +1997,15 @@ export default function Admin() {
                                   onChange={e => {
                                     e.stopPropagation();
                                     const updatedQuestion = { ...q, mustInclude: e.target.checked };
+                                    // 로컬 상태 즉시 업데이트 (Optimistic Update)
+                                    setQuestions(prev => prev.map(question =>
+                                      question.id === q.id ? updatedQuestion : question
+                                    ));
                                     updateQuestion(updatedQuestion);
                                     // Supabase 동기화 (비동기)
                                     updateQuestionInSupabase(updatedQuestion).catch(err => {
                                       console.warn('⚠️ Supabase 동기화 오류:', err);
                                     });
-                                    loadQuestions();
                                   }}
                                   onClick={e => e.stopPropagation()}
                                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
@@ -2017,12 +2020,15 @@ export default function Admin() {
                                   onChange={e => {
                                     e.stopPropagation();
                                     const updatedQuestion = { ...q, mustExclude: e.target.checked };
+                                    // 로컬 상태 즉시 업데이트 (Optimistic Update)
+                                    setQuestions(prev => prev.map(question =>
+                                      question.id === q.id ? updatedQuestion : question
+                                    ));
                                     updateQuestion(updatedQuestion);
                                     // Supabase 동기화 (비동기)
                                     updateQuestionInSupabase(updatedQuestion).catch(err => {
                                       console.warn('⚠️ Supabase 동기화 오류:', err);
                                     });
-                                    loadQuestions();
                                   }}
                                   onClick={e => e.stopPropagation()}
                                   className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
@@ -2099,8 +2105,64 @@ export default function Admin() {
                       <tr>
                         <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ minWidth: '60px' }}>선택</th>
                         <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ minWidth: '80px' }}>ID</th>
-                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ minWidth: '100px' }}>반드시포함</th>
-                        <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ minWidth: '100px' }}>반드시불포함</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ minWidth: '100px' }}>
+                          <div className="flex flex-col items-center gap-1">
+                            <span>반드시포함</span>
+                            <input
+                              type="checkbox"
+                              checked={currentQuestions.length > 0 && currentQuestions.every(q => q.mustInclude)}
+                              onChange={e => {
+                                const value = e.target.checked;
+                                // 현재 페이지의 모든 문제를 배치 업데이트
+                                const updatedQuestions = currentQuestions.map(q => ({ ...q, mustInclude: value }));
+                                setQuestions(prev => {
+                                  const newQuestions = [...prev];
+                                  updatedQuestions.forEach(updated => {
+                                    const idx = newQuestions.findIndex(q => q.id === updated.id);
+                                    if (idx !== -1) newQuestions[idx] = updated;
+                                  });
+                                  return newQuestions;
+                                });
+                                // 로컬 스토리지 및 Supabase 동기화
+                                updatedQuestions.forEach(q => {
+                                  updateQuestion(q);
+                                  updateQuestionInSupabase(q).catch(err => console.warn('⚠️ Supabase 동기화 오류:', err));
+                                });
+                              }}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              title="현재 페이지 전체 반드시포함 설정"
+                            />
+                          </div>
+                        </th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ minWidth: '100px' }}>
+                          <div className="flex flex-col items-center gap-1">
+                            <span>반드시불포함</span>
+                            <input
+                              type="checkbox"
+                              checked={currentQuestions.length > 0 && currentQuestions.every(q => q.mustExclude)}
+                              onChange={e => {
+                                const value = e.target.checked;
+                                // 현재 페이지의 모든 문제를 배치 업데이트
+                                const updatedQuestions = currentQuestions.map(q => ({ ...q, mustExclude: value }));
+                                setQuestions(prev => {
+                                  const newQuestions = [...prev];
+                                  updatedQuestions.forEach(updated => {
+                                    const idx = newQuestions.findIndex(q => q.id === updated.id);
+                                    if (idx !== -1) newQuestions[idx] = updated;
+                                  });
+                                  return newQuestions;
+                                });
+                                // 로컬 스토리지 및 Supabase 동기화
+                                updatedQuestions.forEach(q => {
+                                  updateQuestion(q);
+                                  updateQuestionInSupabase(q).catch(err => console.warn('⚠️ Supabase 동기화 오류:', err));
+                                });
+                              }}
+                              className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                              title="현재 페이지 전체 반드시불포함 설정"
+                            />
+                          </div>
+                        </th>
                         <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ minWidth: '120px' }}>작업</th>
                         <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ minWidth: '100px' }}>카테고리</th>
                         <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ minWidth: '200px' }}>출제기준</th>
@@ -2138,12 +2200,15 @@ export default function Admin() {
                               checked={q.mustInclude || false}
                               onChange={e => {
                                 const updatedQuestion = { ...q, mustInclude: e.target.checked };
+                                // 로컬 상태 즉시 업데이트 (Optimistic Update)
+                                setQuestions(prev => prev.map(question =>
+                                  question.id === q.id ? updatedQuestion : question
+                                ));
                                 updateQuestion(updatedQuestion);
                                 // Supabase 동기화 (비동기)
                                 updateQuestionInSupabase(updatedQuestion).catch(err => {
                                   console.warn('⚠️ Supabase 동기화 오류:', err);
                                 });
-                                loadQuestions();
                               }}
                               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                               title="반드시 포함 문제"
@@ -2155,12 +2220,15 @@ export default function Admin() {
                               checked={q.mustExclude || false}
                               onChange={e => {
                                 const updatedQuestion = { ...q, mustExclude: e.target.checked };
+                                // 로컬 상태 즉시 업데이트 (Optimistic Update)
+                                setQuestions(prev => prev.map(question =>
+                                  question.id === q.id ? updatedQuestion : question
+                                ));
                                 updateQuestion(updatedQuestion);
                                 // Supabase 동기화 (비동기)
                                 updateQuestionInSupabase(updatedQuestion).catch(err => {
                                   console.warn('⚠️ Supabase 동기화 오류:', err);
                                 });
-                                loadQuestions();
                               }}
                               className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
                               title="반드시 불포함 문제"
