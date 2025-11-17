@@ -20,6 +20,8 @@ import {
   getGlobalLearningProgress,
   updateGlobalLearningProgress,
   getStatistics,
+  getQuestionAnswerHistory,
+  updateQuestionAnswer,
 } from '../services/storage';
 import { saveUserDataToSupabase } from '../services/supabaseService';
 import type { ExamSession, ExamResult, WrongAnswer } from '../types';
@@ -80,7 +82,10 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
   
   // 전역 문제 이해도 불러오기 (새로운 세션이어도 이전에 체크한 이해도 표시)
   const globalLearningProgress = getGlobalLearningProgress();
-  
+
+  // 전역 답변 기록 불러오기 (새로운 세션이어도 이전에 선택한 답변 표시)
+  const questionAnswerHistory = getQuestionAnswerHistory();
+
   // 정렬된 문제 사용 (세션 복원 시 "완벽 이해" 문제 제외)
   const displayQuestions = useMemo(() => {
     // 세션 복원 여부 확인
@@ -123,11 +128,20 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
     // 문제 ID가 일치하는지 확인 (원본 문제 세트 기준 - "완벽 이해" 문제 제외 전)
     const savedQuestionIds = savedSession.questions.map(q => q.id).sort();
     const originalQuestionIds = sortedQuestions.map(q => q.id).sort();
-    
+
     // 원본 문제 세트와 세션 문제 세트가 일치하는지 확인
     if (savedQuestionIds.length === originalQuestionIds.length &&
         savedQuestionIds.every((id, index) => id === originalQuestionIds[index])) {
+      // 세션 답변이 있으면 우선, 없으면 전역 답변 기록 사용
       initialAnswers = savedSession.answers || {};
+
+      // 전역 답변 기록도 병합 (세션에 없는 답변만 추가)
+      sortedQuestions.forEach(q => {
+        if (!(q.id in initialAnswers) && q.id in questionAnswerHistory) {
+          initialAnswers[q.id] = questionAnswerHistory[q.id];
+        }
+      });
+
       // 세션의 이해도와 전역 이해도를 병합 (전역 이해도가 우선)
       initialLearningProgress = { ...globalLearningProgress, ...(savedSession.learningProgress || {}) };
       initialMode = (savedSession.mode as any) || 'untimedRandom';
@@ -159,6 +173,14 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
     // 실전 모의고사 모드인 경우 세션 삭제 (새로 시작)
     console.log('🚫 실전 모의고사 모드: 이전 세션 무시하고 새로 시작');
     clearCurrentExamSession();
+  } else if (!isTimedRandomMode) {
+    // 세션이 없지만 실전 모의고사가 아니면, 전역 답변 기록 불러오기
+    sortedQuestions.forEach(q => {
+      if (q.id in questionAnswerHistory) {
+        initialAnswers[q.id] = questionAnswerHistory[q.id];
+      }
+    });
+    console.log(`💾 전역 답변 기록 로드: ${Object.keys(initialAnswers).length}개 문제의 이전 답변 복원`);
   }
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -377,10 +399,13 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
   };
 
   const handleAnswerSelect = (answer: number) => {
+    const questionId = displayQuestions[currentIndex].id;
     setAnswers({
       ...answers,
-      [displayQuestions[currentIndex].id]: answer,
+      [questionId]: answer,
     });
+    // 전역 답변 기록에도 저장 (다음에 이 문제를 다시 풀 때 이전 답변 표시)
+    updateQuestionAnswer(questionId, answer);
   };
 
   const handleNext = () => {

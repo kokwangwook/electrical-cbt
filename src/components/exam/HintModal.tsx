@@ -8,11 +8,11 @@ interface HintModalProps {
 
 export default function HintModal({ question, onClose }: HintModalProps) {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" role="dialog" aria-modal="true" aria-labelledby="hint-modal-title">
       <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
         {/* 헤더 */}
         <div className="bg-yellow-500 text-white p-4 flex justify-between items-center">
-          <h2 className="text-xl font-bold flex items-center gap-2">
+          <h2 id="hint-modal-title" className="text-xl font-bold flex items-center gap-2">
             💡 힌트
           </h2>
           <button

@@ -12,9 +12,9 @@ export default function PrintOptionsModal({
   onClose,
 }: PrintOptionsModalProps) {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 non-printable">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 non-printable" role="dialog" aria-modal="true" aria-labelledby="print-modal-title">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">🖨️ 인쇄 옵션 선택</h2>
+        <h2 id="print-modal-title" className="text-2xl font-bold text-gray-800 mb-4">🖨️ 인쇄 옵션 선택</h2>
         <p className="text-sm text-gray-600 mb-6">인쇄할 내용을 선택하세요</p>
 
         <div className="space-y-3 mb-6">

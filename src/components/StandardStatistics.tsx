@@ -55,6 +55,27 @@ export default function StandardStatistics() {
     return stats;
   }, [questions]);
 
+  // 출제기준 및 세부항목별 문제 그룹화 (O(n²) 필터링 최적화)
+  const questionGroups = useMemo(() => {
+    const groups: Record<string, Record<string, Question[]>> = {};
+
+    // 한 번의 순회로 모든 문제를 분류
+    questions.forEach(question => {
+      const standard = question.standard || '미지정';
+      const detailItem = question.detailItem || '미지정';
+
+      if (!groups[standard]) {
+        groups[standard] = {};
+      }
+      if (!groups[standard][detailItem]) {
+        groups[standard][detailItem] = [];
+      }
+      groups[standard][detailItem].push(question);
+    });
+
+    return groups;
+  }, [questions]);
+
   // 카테고리별 출제기준 통계
   const categoryStandardStats = useMemo(() => {
     const categoryStats: Record<string, Array<{ standard: string; count: number; title: string }>> = {
@@ -176,22 +197,21 @@ export default function StandardStatistics() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {standards.map(({ standard, count, title }) => {
                   // 카테고리 전체 문제 수 대비 비율 계산
-                  const percentage = categoryTotalCount > 0 
-                    ? ((count / categoryTotalCount) * 100).toFixed(1) 
+                  const percentage = categoryTotalCount > 0
+                    ? ((count / categoryTotalCount) * 100).toFixed(1)
                     : '0.0';
-                  
-                  // 해당 출제기준의 문제들
-                  const standardQuestions = questions.filter(q => q.standard === standard);
-                  
-                  // 세부항목별 문제 수 계산
+
+                  // 해당 출제기준의 문제 그룹 가져오기 (O(1) 조회)
+                  const standardGroup = questionGroups[standard] || {};
+
+                  // 세부항목별 문제 수 계산 (미리 그룹화된 데이터 사용)
                   const detailItems = getDetailItemsByStandard(standard);
                   const detailItemStats: Record<string, number> = {};
                   detailItems.forEach(item => {
-                    detailItemStats[item] = standardQuestions.filter(q => q.detailItem === item).length;
+                    detailItemStats[item] = (standardGroup[item] || []).length;
                   });
-                  // 세부항목이 지정되지 않은 문제 수 (항상 계산하되, 0개여도 표시)
-                  const unspecifiedCount = standardQuestions.filter(q => !q.detailItem || !detailItems.includes(q.detailItem)).length;
-                  detailItemStats['미지정'] = unspecifiedCount;
+                  // 세부항목이 지정되지 않은 문제 수
+                  detailItemStats['미지정'] = (standardGroup['미지정'] || []).length;
                   
                   return (
                     <div
