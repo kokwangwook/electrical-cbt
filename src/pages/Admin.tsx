@@ -1207,7 +1207,20 @@ export default function Admin() {
   const handleSaveExamConfig = () => {
     try {
       saveExamConfig(examConfig);
-      alert('✅ 출제 설정이 저장되었습니다.');
+      
+      // 저장된 설정 상세 정보
+      const weightInfo = examConfig.weightBasedEnabled 
+        ? `✅ 가중치 기반 출제: 활성화\n📋 모드: ${examConfig.mode === 'filter' ? '필터 모드' : '비율 모드'}\n🎯 선택된 가중치: ${examConfig.selectedWeights.join(', ')}`
+        : '❌ 가중치 기반 출제: 비활성화';
+      
+      alert(
+        '✅ 출제 설정이 저장되었습니다!\n\n' +
+        '📌 저장된 설정:\n' +
+        weightInfo
+      );
+      
+      // 콘솔에도 로그 출력
+      console.log('💾 저장된 출제 설정:', examConfig);
     } catch (error) {
       console.error('출제 설정 저장 실패:', error);
       alert('❌ 출제 설정 저장에 실패했습니다.');
@@ -2242,6 +2255,54 @@ export default function Admin() {
                   >
                     🔄 초기화
                   </button>
+                </div>
+              </div>
+              
+              {/* 현재 저장된 설정 표시 */}
+              <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                <h3 className="text-sm font-bold text-blue-800 mb-2">📋 현재 저장된 출제 설정</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-gray-700">가중치 기반 출제:</span>
+                    <span className={`px-2 py-1 rounded ${examConfig.weightBasedEnabled ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      {examConfig.weightBasedEnabled ? '✅ 활성화' : '❌ 비활성화'}
+                    </span>
+                  </div>
+                  
+                  {examConfig.weightBasedEnabled && (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-gray-700">출제 모드:</span>
+                        <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded">
+                          {examConfig.mode === 'filter' ? '🎯 필터 모드' : '📊 비율 모드'}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-start gap-2">
+                        <span className="font-semibold text-gray-700">선택된 가중치:</span>
+                        <div className="flex flex-wrap gap-1">
+                          {examConfig.selectedWeights.map(w => (
+                            <span key={w} className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                              {w}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {examConfig.mode === 'ratio' && Object.keys(examConfig.weightRatios || {}).length > 0 && (
+                        <div className="flex items-start gap-2">
+                          <span className="font-semibold text-gray-700">가중치 비율:</span>
+                          <div className="flex flex-wrap gap-1">
+                            {Object.entries(examConfig.weightRatios || {}).map(([weight, ratio]) => (
+                              <span key={weight} className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">
+                                가중치 {weight}: {ratio}%
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             </div>
