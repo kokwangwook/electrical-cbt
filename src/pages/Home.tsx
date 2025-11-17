@@ -150,6 +150,15 @@ export default function Home({ onStartExam, onGoToStatistics }: HomeProps) {
         // 가중치 기반 출제 설정 확인
         const examConfig = getExamConfig();
 
+        // 디버깅: 설정 상세 로그
+        console.log('🔧 [디버깅] 출제 설정 로드됨:', JSON.stringify(examConfig, null, 2));
+        console.log(`🔧 [디버깅] weightBasedEnabled: ${examConfig.weightBasedEnabled} (타입: ${typeof examConfig.weightBasedEnabled})`);
+        console.log(`🔧 [디버깅] mode: ${examConfig.mode}`);
+        console.log(`🔧 [디버깅] selectedWeights: [${examConfig.selectedWeights.join(', ')}]`);
+        if (examConfig.weightRatios) {
+          console.log(`🔧 [디버깅] weightRatios:`, examConfig.weightRatios);
+        }
+
         if (examConfig.weightBasedEnabled) {
           console.log('🎯 가중치 기반 출제 모드 활성화');
           console.log(`📋 모드: ${examConfig.mode}, 선택된 가중치: ${examConfig.selectedWeights.join(', ')}`);
@@ -164,6 +173,14 @@ export default function Home({ onStartExam, onGoToStatistics }: HomeProps) {
             return;
           }
 
+          // 전체 문제 가중치 분포 로그
+          const totalWeightDist: { [key: number]: number } = {};
+          allQuestions.forEach(q => {
+            const w = q.weight || 5;
+            totalWeightDist[w] = (totalWeightDist[w] || 0) + 1;
+          });
+          console.log('📊 [디버깅] 전체 문제 가중치 분포:', totalWeightDist);
+
           // 가중치 기반 문제 선택
           examQuestions = selectBalancedQuestionsByWeight(allQuestions, 60, examConfig);
           console.log(`✅ 가중치 기반 선택 완료: ${examQuestions.length}개`);
@@ -175,8 +192,16 @@ export default function Home({ onStartExam, onGoToStatistics }: HomeProps) {
             weightDist[w] = (weightDist[w] || 0) + 1;
           });
           console.log('📊 선택된 문제 가중치 분포:', weightDist);
+
+          // 카테고리별 분포도 확인
+          const categoryDist: { [key: string]: number } = {};
+          examQuestions.forEach(q => {
+            categoryDist[q.category] = (categoryDist[q.category] || 0) + 1;
+          });
+          console.log('📊 [디버깅] 선택된 문제 카테고리 분포:', categoryDist);
         } else {
           console.log('🎲 랜덤 60문제: 서버에서 직접 60문제 가져오기 (가중치 비활성화)');
+          console.log('⚠️ [주의] Admin에서 "가중치 기반 출제 사용"을 활성화해야 합니다!');
           examQuestions = await fetchRandom60Questions();
           console.log(`✅ 서버에서 가져온 문제: ${examQuestions.length}개`);
         }
@@ -282,6 +307,10 @@ export default function Home({ onStartExam, onGoToStatistics }: HomeProps) {
       const examConfig = getExamConfig();
       let examQuestions: Question[];
 
+      // 디버깅: 설정 상세 로그
+      console.log('🔧 [디버깅] 실전 모의고사 - 출제 설정 로드됨:', JSON.stringify(examConfig, null, 2));
+      console.log(`🔧 [디버깅] weightBasedEnabled: ${examConfig.weightBasedEnabled} (타입: ${typeof examConfig.weightBasedEnabled})`);
+
       if (examConfig.weightBasedEnabled) {
         console.log('🎯 가중치 기반 출제 모드 활성화 (실전 모의고사)');
         console.log(`📋 모드: ${examConfig.mode}, 선택된 가중치: ${examConfig.selectedWeights.join(', ')}`);
@@ -296,6 +325,14 @@ export default function Home({ onStartExam, onGoToStatistics }: HomeProps) {
           return;
         }
 
+        // 전체 문제 가중치 분포 로그
+        const totalWeightDist: { [key: number]: number } = {};
+        allQuestions.forEach(q => {
+          const w = q.weight || 5;
+          totalWeightDist[w] = (totalWeightDist[w] || 0) + 1;
+        });
+        console.log('📊 [디버깅] 전체 문제 가중치 분포:', totalWeightDist);
+
         // 가중치 기반 문제 선택
         examQuestions = selectBalancedQuestionsByWeight(allQuestions, 60, examConfig);
         console.log(`✅ 가중치 기반 선택 완료: ${examQuestions.length}개`);
@@ -307,7 +344,16 @@ export default function Home({ onStartExam, onGoToStatistics }: HomeProps) {
           weightDist[w] = (weightDist[w] || 0) + 1;
         });
         console.log('📊 선택된 문제 가중치 분포:', weightDist);
+
+        // 카테고리별 분포도 확인
+        const categoryDist: { [key: string]: number } = {};
+        examQuestions.forEach(q => {
+          categoryDist[q.category] = (categoryDist[q.category] || 0) + 1;
+        });
+        console.log('📊 [디버깅] 선택된 문제 카테고리 분포:', categoryDist);
       } else {
+        console.log('🎲 가중치 비활성화 - 일반 랜덤 선택');
+        console.log('⚠️ [주의] Admin에서 "가중치 기반 출제 사용"을 활성화해야 합니다!');
         examQuestions = await fetchRandom60Questions();
         console.log(`✅ 서버에서 가져온 문제: ${examQuestions.length}개 (가중치 비활성화)`);
       }
