@@ -496,7 +496,16 @@ export function getMembers(): Member[] {
 }
 
 export function saveMembers(members: Member[]): void {
-  localStorage.setItem(MEMBERS_KEY, JSON.stringify(members));
+  try {
+    localStorage.setItem(MEMBERS_KEY, JSON.stringify(members));
+  } catch (error) {
+    if (error instanceof Error && error.name === 'QuotaExceededError') {
+      console.error('❌ localStorage 용량 초과! 회원 데이터를 저장할 수 없습니다.');
+      // 사용자에게 알림
+      throw new Error('저장 공간이 부족합니다. 브라우저의 로컬 스토리지를 정리해주세요.');
+    }
+    throw error;
+  }
 }
 
 export function addMember(member: Omit<Member, 'id' | 'registeredAt'>): Member {
@@ -706,7 +715,23 @@ export function getWrongAnswers(): WrongAnswer[] {
 }
 
 export function saveWrongAnswers(wrongAnswers: WrongAnswer[]): void {
-  localStorage.setItem(WRONG_ANSWERS_KEY, JSON.stringify(wrongAnswers));
+  try {
+    localStorage.setItem(WRONG_ANSWERS_KEY, JSON.stringify(wrongAnswers));
+  } catch (error) {
+    if (error instanceof Error && error.name === 'QuotaExceededError') {
+      console.error('❌ localStorage 용량 초과! 오답 데이터를 저장할 수 없습니다.');
+      // 가장 오래된 오답 데이터 일부 삭제 시도
+      const reducedWrongAnswers = wrongAnswers.slice(-100); // 최근 100개만 유지
+      try {
+        localStorage.setItem(WRONG_ANSWERS_KEY, JSON.stringify(reducedWrongAnswers));
+        console.log('✅ 오래된 오답 데이터를 정리하여 저장했습니다. (최근 100개 유지)');
+      } catch (retryError) {
+        throw new Error('저장 공간이 부족합니다. 브라우저의 로컬 스토리지를 정리해주세요.');
+      }
+    } else {
+      throw error;
+    }
+  }
 }
 
 /**
@@ -904,7 +929,24 @@ export function saveGlobalLearningProgress(progress: { [questionId: number]: num
   try {
     localStorage.setItem(GLOBAL_LEARNING_PROGRESS_KEY, JSON.stringify(progress));
   } catch (error) {
-    console.error('❌ 전역 문제 이해도 저장 실패:', error);
+    if (error instanceof Error && error.name === 'QuotaExceededError') {
+      console.error('❌ localStorage 용량 초과! 문제 이해도 데이터를 저장할 수 없습니다.');
+      // 이해도가 낮은 문제만 유지 (진도 1-4), 완벽 이해(5-6)한 문제는 제거
+      const reducedProgress: { [questionId: number]: number } = {};
+      Object.entries(progress).forEach(([id, level]) => {
+        if (level <= 4) {
+          reducedProgress[parseInt(id)] = level;
+        }
+      });
+      try {
+        localStorage.setItem(GLOBAL_LEARNING_PROGRESS_KEY, JSON.stringify(reducedProgress));
+        console.log('✅ 완벽 이해한 문제를 제외하고 저장했습니다. (진도 1-4만 유지)');
+      } catch (retryError) {
+        console.error('❌ 문제 이해도 저장 재시도 실패:', retryError);
+      }
+    } else {
+      console.error('❌ 전역 문제 이해도 저장 실패:', error);
+    }
   }
 }
 
@@ -962,7 +1004,23 @@ export function getExamResults(): ExamResult[] {
 }
 
 export function saveExamResults(results: ExamResult[]): void {
-  localStorage.setItem(EXAM_RESULTS_KEY, JSON.stringify(results));
+  try {
+    localStorage.setItem(EXAM_RESULTS_KEY, JSON.stringify(results));
+  } catch (error) {
+    if (error instanceof Error && error.name === 'QuotaExceededError') {
+      console.error('❌ localStorage 용량 초과! 시험 결과 데이터를 저장할 수 없습니다.');
+      // 가장 오래된 시험 결과 일부 삭제 시도
+      const reducedResults = results.slice(-50); // 최근 50개만 유지
+      try {
+        localStorage.setItem(EXAM_RESULTS_KEY, JSON.stringify(reducedResults));
+        console.log('✅ 오래된 시험 결과를 정리하여 저장했습니다. (최근 50개 유지)');
+      } catch (retryError) {
+        throw new Error('저장 공간이 부족합니다. 브라우저의 로컬 스토리지를 정리해주세요.');
+      }
+    } else {
+      throw error;
+    }
+  }
 }
 
 export function addExamResult(result: ExamResult): void {

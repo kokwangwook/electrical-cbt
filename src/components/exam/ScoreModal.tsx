@@ -65,10 +65,10 @@ export default function ScoreModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="score-modal-title">
       <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full mx-4">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-800 mb-6">📊 채점 결과</h2>
+          <h2 id="score-modal-title" className="text-3xl font-bold text-gray-800 mb-6">📊 채점 결과</h2>
 
           {/* 오답노트 모드일 때 */}
           {examMode === 'wrong' && scoreResult.encouragement ? (

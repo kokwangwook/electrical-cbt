@@ -130,11 +130,11 @@ export default function FeedbackBoard({ onClose, currentQuestion, currentQuestio
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" role="dialog" aria-modal="true" aria-labelledby="feedback-modal-title">
       <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* 헤더 */}
         <div className="bg-blue-600 text-white p-4 flex justify-between items-center">
-          <h2 className="text-xl font-bold">📋 제보 게시판</h2>
+          <h2 id="feedback-modal-title" className="text-xl font-bold">📋 제보 게시판</h2>
           <button
             onClick={onClose}
             className="text-white hover:text-gray-200 text-2xl font-bold"
