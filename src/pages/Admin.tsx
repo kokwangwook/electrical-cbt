@@ -51,6 +51,7 @@ import {
   saveMemberToSupabase,
   getLoginHistory as getLoginHistoryFromSupabase,
   fetchAllUserDataFromSupabase,
+  fetchAllQuestions,
 } from '../services/supabaseService';
 import { useFeedbacks } from '../hooks/useFeedbacks';
 
@@ -234,11 +235,31 @@ export default function Admin() {
     }
   };
 
-  const loadQuestions = () => {
-    const allQuestions = getQuestions();
-    // 최신 문제가 맨 위로 오도록 ID 내림차순 정렬
-    const sortedQuestions = [...allQuestions].sort((a, b) => b.id - a.id);
-    setQuestions(sortedQuestions);
+  const loadQuestions = async () => {
+    try {
+      // Supabase에서 모든 문제 가져오기
+      const allQuestions = await fetchAllQuestions();
+      
+      if (allQuestions && allQuestions.length > 0) {
+        // 최신 문제가 맨 위로 오도록 ID 내림차순 정렬
+        const sortedQuestions = [...allQuestions].sort((a, b) => b.id - a.id);
+        setQuestions(sortedQuestions);
+        
+        // 로컬 스토리지에도 캐싱
+        saveQuestions(allQuestions);
+      } else {
+        // Supabase에서 가져오지 못한 경우 로컬 스토리지에서 fallback
+        const localQuestions = getQuestions();
+        const sortedQuestions = [...localQuestions].sort((a, b) => b.id - a.id);
+        setQuestions(sortedQuestions);
+      }
+    } catch (error) {
+      console.error('문제 로드 오류:', error);
+      // 에러 발생 시 로컬 스토리지에서 fallback
+      const localQuestions = getQuestions();
+      const sortedQuestions = [...localQuestions].sort((a, b) => b.id - a.id);
+      setQuestions(sortedQuestions);
+    }
   };
 
   // 서버에서 문제 수 로드
