@@ -1161,8 +1161,8 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
                       <div className="flex gap-1 flex-wrap">
                         {[
                           { value: 1, label: '전혀 모름', short: '1' },
-                          { value: 2, label: '어려움', short: '2' },
-                          { value: 3, label: '매우 어려움', short: '3' },
+                          { value: 2, label: '매우 어려움', short: '2' },
+                          { value: 3, label: '어려움', short: '3' },
                           { value: 4, label: '반복 필요', short: '4' },
                           { value: 5, label: '거의 이해', short: '5' },
                           { value: 6, label: '완벽 이해', short: '6' },
@@ -1188,8 +1188,8 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
                         <div className="mt-1 text-xs text-yellow-700">
                           선택됨: {[
                             { value: 1, label: '전혀 모름' },
-                            { value: 2, label: '어려움' },
-                            { value: 3, label: '매우 어려움' },
+                            { value: 2, label: '매우 어려움' },
+                            { value: 3, label: '어려움' },
                             { value: 4, label: '반복 필요' },
                             { value: 5, label: '거의 이해' },
                             { value: 6, label: '완벽 이해' },
@@ -1776,8 +1776,8 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
                   <div className={isMobile ? 'grid grid-cols-2 gap-2' : 'flex gap-2 flex-wrap'}>
                     {[
                       { value: 1, label: '전혀 모름' },
-                      { value: 2, label: '어려움' },
-                      { value: 3, label: '매우 어려움' },
+                      { value: 2, label: '매우 어려움' },
+                      { value: 3, label: '어려움' },
                       { value: 4, label: '반복 학습 필요' },
                       { value: 5, label: '거의 이해' },
                       { value: 6, label: '완벽 이해' },
