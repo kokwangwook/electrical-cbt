@@ -939,17 +939,20 @@ export default function Admin() {
   };
 
   // 모든 문제에 출제기준 일괄 적용
-  const handleApplyStandardsToAll = () => {
+  const handleApplyStandardsToAll = async () => {
     if (!window.confirm('모든 문제에 출제기준과 세부항목을 일괄 적용하시겠습니까?\n\n이미 출제기준이 있는 문제는 건너뜁니다.')) {
       return;
     }
 
-    const allQuestions = getQuestions();
+    // 현재 state의 문제 사용 (Supabase에서 로드된 최신 데이터)
+    const allQuestions = questions.length > 0 ? questions : getQuestions();
     let appliedStandardCount = 0;
     let appliedDetailItemCount = 0;
+    const changedQuestions: Question[] = [];
 
     const updatedQuestions = allQuestions.map(q => {
       let updated = { ...q };
+      let changed = false;
 
       // 1. 출제기준이 없으면 자동 적용
       if (!updated.standard) {
@@ -967,6 +970,7 @@ export default function Admin() {
         if (matchedStandard) {
           updated.standard = matchedStandard;
           appliedStandardCount++;
+          changed = true;
         }
       }
 
@@ -976,14 +980,37 @@ export default function Admin() {
         if (matchedDetailItem) {
           updated.detailItem = matchedDetailItem;
           appliedDetailItemCount++;
+          changed = true;
         }
+      }
+
+      if (changed) {
+        changedQuestions.push(updated);
       }
 
       return updated;
     });
 
+    // 로컬 상태 즉시 업데이트
+    setQuestions(updatedQuestions);
+
+    // 로컬 스토리지에 저장
     saveQuestions(updatedQuestions);
-    loadQuestions();
+
+    // Supabase에 변경된 문제들만 동기화 (백그라운드)
+    if (changedQuestions.length > 0) {
+      console.log(`🔄 Supabase에 ${changedQuestions.length}개 문제 동기화 중...`);
+      const syncPromises = changedQuestions.map(q =>
+        updateQuestionInSupabase(q).catch(err => {
+          console.warn(`⚠️ 문제 ${q.id} Supabase 동기화 오류:`, err);
+        })
+      );
+
+      // 백그라운드에서 동기화 진행
+      Promise.all(syncPromises).then(() => {
+        console.log(`✅ Supabase 동기화 완료: ${changedQuestions.length}개 문제`);
+      });
+    }
 
     alert(
       `✅ 출제기준 일괄 적용 완료!\n\n` +
