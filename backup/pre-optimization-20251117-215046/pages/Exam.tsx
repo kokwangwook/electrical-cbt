@@ -20,8 +20,6 @@ import {
   getGlobalLearningProgress,
   updateGlobalLearningProgress,
   getStatistics,
-  getQuestionAnswerHistory,
-  updateQuestionAnswer,
 } from '../services/storage';
 import { saveUserDataToSupabase } from '../services/supabaseService';
 import type { ExamSession, ExamResult, WrongAnswer } from '../types';
@@ -82,10 +80,7 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
   
   // 전역 문제 이해도 불러오기 (새로운 세션이어도 이전에 체크한 이해도 표시)
   const globalLearningProgress = getGlobalLearningProgress();
-
-  // 전역 답변 기록 불러오기 (새로운 세션이어도 이전에 선택한 답변 표시)
-  const questionAnswerHistory = getQuestionAnswerHistory();
-
+  
   // 정렬된 문제 사용 (세션 복원 시 "완벽 이해" 문제 제외)
   const displayQuestions = useMemo(() => {
     // 세션 복원 여부 확인
@@ -128,20 +123,11 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
     // 문제 ID가 일치하는지 확인 (원본 문제 세트 기준 - "완벽 이해" 문제 제외 전)
     const savedQuestionIds = savedSession.questions.map(q => q.id).sort();
     const originalQuestionIds = sortedQuestions.map(q => q.id).sort();
-
+    
     // 원본 문제 세트와 세션 문제 세트가 일치하는지 확인
     if (savedQuestionIds.length === originalQuestionIds.length &&
         savedQuestionIds.every((id, index) => id === originalQuestionIds[index])) {
-      // 세션 답변이 있으면 우선, 없으면 전역 답변 기록 사용
       initialAnswers = savedSession.answers || {};
-
-      // 전역 답변 기록도 병합 (세션에 없는 답변만 추가)
-      sortedQuestions.forEach(q => {
-        if (!(q.id in initialAnswers) && q.id in questionAnswerHistory) {
-          initialAnswers[q.id] = questionAnswerHistory[q.id];
-        }
-      });
-
       // 세션의 이해도와 전역 이해도를 병합 (전역 이해도가 우선)
       initialLearningProgress = { ...globalLearningProgress, ...(savedSession.learningProgress || {}) };
       initialMode = (savedSession.mode as any) || 'untimedRandom';
@@ -173,25 +159,14 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
     // 실전 모의고사 모드인 경우 세션 삭제 (새로 시작)
     console.log('🚫 실전 모의고사 모드: 이전 세션 무시하고 새로 시작');
     clearCurrentExamSession();
-  } else if (!isTimedRandomMode) {
-    // 세션이 없지만 실전 모의고사가 아니면, 전역 답변 기록 불러오기
-    sortedQuestions.forEach(q => {
-      if (q.id in questionAnswerHistory) {
-        initialAnswers[q.id] = questionAnswerHistory[q.id];
-      }
-    });
-    console.log(`💾 전역 답변 기록 로드: ${Object.keys(initialAnswers).length}개 문제의 이전 답변 복원`);
   }
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<{ [key: number]: number }>(initialAnswers);
-  // 타이머 재시작 방지를 위한 ref
-  const answersRef = useRef(answers);
-
   // 초기화: 세션 이해도와 전역 이해도를 병합 (전역 이해도가 우선, 세션 이해도로 덮어쓰기)
   const [learningProgress, setLearningProgress] = useState<{ [key: number]: number }>(
-    Object.keys(initialLearningProgress).length > 0
-      ? { ...globalLearningProgress, ...initialLearningProgress }
+    Object.keys(initialLearningProgress).length > 0 
+      ? { ...globalLearningProgress, ...initialLearningProgress } 
       : globalLearningProgress
   );
   const [startTime, setStartTime] = useState(initialStartTime);
@@ -201,11 +176,6 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
   const [isMobile, setIsMobile] = useState(isMobileDevice());
   const [isTimeReset, setIsTimeReset] = useState(false); // 시간 초기화 여부
   const [showScoreModal, setShowScoreModal] = useState(false);
-
-  // answers 변경 시 ref 업데이트
-  useEffect(() => {
-    answersRef.current = answers;
-  }, [answers]);
 
   // 화면 크기 변경 감지 (모바일/PC 전환 시)
   useEffect(() => {
@@ -353,7 +323,7 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         const remaining = Math.max(0, duration - elapsed);
         setRemainingTime(remaining);
-
+        
         // 시간이 모두 소진되면 자동 제출
         if (remaining === 0) {
           clearInterval(timer);
@@ -362,16 +332,15 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
         }
       } else {
         // 시간 초기화를 하지 않은 경우: 풀지 못한 문제당 1분씩 시간 부여
-        // ref를 사용하여 최신 answers 값 참조 (타이머 재시작 방지)
-        const answeredCount = Object.keys(answersRef.current).length;
+        const answeredCount = Object.keys(answers).length;
         const unansweredCount = displayQuestions.length - answeredCount;
-
+        
         // 답변 기록이 없으면 60분부터 시작
         if (answeredCount === 0) {
           const elapsed = Math.floor((Date.now() - startTime) / 1000);
           const remaining = Math.max(0, duration - elapsed);
           setRemainingTime(remaining);
-
+          
           // 시간이 모두 소진되면 자동 제출
           if (remaining === 0) {
             clearInterval(timer);
@@ -382,12 +351,12 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
           // 답변 기록이 있으면 풀지 못한 문제당 1분씩 시간 부여
           // 실제 경과 시간을 계산하여 시간이 흐르도록 함
           const elapsed = Math.floor((Date.now() - startTime) / 1000);
-
+          
           // 풀지 못한 문제당 1분(60초)씩 시간 부여
           const totalTime = unansweredCount * 60;
           const remaining = Math.max(0, totalTime - elapsed);
           setRemainingTime(remaining);
-
+          
           // 시간이 모두 소진되면 자동 제출
           if (remaining === 0) {
             clearInterval(timer);
@@ -399,7 +368,7 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [displayQuestions.length, startTime, duration, isTimeReset]);
+  }, [displayQuestions.length, answers, startTime, duration, isTimeReset]);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -408,13 +377,10 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
   };
 
   const handleAnswerSelect = (answer: number) => {
-    const questionId = displayQuestions[currentIndex].id;
     setAnswers({
       ...answers,
-      [questionId]: answer,
+      [displayQuestions[currentIndex].id]: answer,
     });
-    // 전역 답변 기록에도 저장 (다음에 이 문제를 다시 풀 때 이전 답변 표시)
-    updateQuestionAnswer(questionId, answer);
   };
 
   const handleNext = () => {

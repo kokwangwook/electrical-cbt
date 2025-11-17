@@ -1,4 +1,3 @@
-import { memo } from 'react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 
@@ -10,11 +9,11 @@ interface LatexRendererProps {
 /**
  * LaTeX 렌더링 컴포넌트
  * $ ... $ 사이의 LaTeX 수식을 렌더링합니다.
- *
+ * 
  * 사용 예시:
  * <LatexRenderer text="전압 $V = I \times R$ 입니다." />
  */
-const LatexRenderer = memo(function LatexRenderer({ text, className = '' }: LatexRendererProps) {
+export default function LatexRenderer({ text, className = '' }: LatexRendererProps) {
   const renderLatex = (inputText: string | null | undefined | number): string => {
     // 타입 체크 및 기본값 처리
     if (inputText === null || inputText === undefined) {
@@ -122,13 +121,11 @@ const LatexRenderer = memo(function LatexRenderer({ text, className = '' }: Late
   // className에 inline이 포함되어 있으면 span으로, 아니면 div로 렌더링
   const isInline = className.includes('inline');
   const Tag = isInline ? 'span' : 'div';
-
+  
   return (
     <Tag
       className={className}
       dangerouslySetInnerHTML={{ __html: renderLatex(text) }}
     />
   );
-});
-
-export default LatexRenderer;
+}

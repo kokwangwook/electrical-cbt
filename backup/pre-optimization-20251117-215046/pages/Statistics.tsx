@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import type { Statistics } from '../types';
 import { getStatistics, clearStatistics, clearCurrentExamSession } from '../services/storage';
 import {
@@ -62,29 +62,25 @@ export default function Statistics({ onBack }: StatisticsProps) {
     recentResults: stats?.recentResults || [],
   };
 
-  // 카테고리별 정답률 그래프 데이터 (useMemo로 최적화)
-  const categoryData = useMemo(() => {
-    return Object.entries(safeStats.categoryStats || {}).map(([category, data]) => {
-      const percentage = data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
-      return {
-        카테고리: category,
-        정답률: percentage,
-        정답: data.correct,
-        오답: data.total - data.correct,
-      };
-    });
-  }, [safeStats.categoryStats]);
+  // 카테고리별 정답률 그래프 데이터
+  const categoryData = Object.entries(safeStats.categoryStats || {}).map(([category, data]) => {
+    const percentage = data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0;
+    return {
+      카테고리: category,
+      정답률: percentage,
+      정답: data.correct,
+      오답: data.total - data.correct,
+    };
+  });
 
-  // 최근 시험 결과 데이터 (useMemo로 최적화)
-  const recentResults = useMemo(() => {
-    return (safeStats.recentResults || []).slice(-10).map((result, index) => {
-      const score = Math.round((result.correctAnswers / result.totalQuestions) * 100);
-      return {
-        시험: `${index + 1}회`,
-        점수: score,
-      };
-    });
-  }, [safeStats.recentResults]);
+  // 최근 시험 결과 데이터
+  const recentResults = (safeStats.recentResults || []).slice(-10).map((result, index) => {
+    const score = Math.round((result.correctAnswers / result.totalQuestions) * 100);
+    return {
+      시험: `${index + 1}회`,
+      점수: score,
+    };
+  });
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">

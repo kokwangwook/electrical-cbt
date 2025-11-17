@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import type { Question, WrongAnswer } from '../types';
 import { getWrongAnswers, removeWrongAnswer, clearWrongAnswers } from '../services/storage';
 import LatexRenderer from '../components/LatexRenderer';
@@ -50,33 +50,29 @@ export default function WrongAnswers({ onBack, onStartReview }: WrongAnswersProp
     onStartReview(questions);
   };
 
-  // 카테고리별로 그룹화 (useMemo로 최적화)
-  const groupedByCategory = useMemo(() => {
-    return wrongAnswers.reduce((acc, wa) => {
-      const category = wa.question.category;
-      if (!acc[category]) {
-        acc[category] = [];
-      }
-      acc[category].push(wa);
-      return acc;
-    }, {} as Record<string, WrongAnswer[]>);
-  }, [wrongAnswers]);
+  // 카테고리별로 그룹화
+  const groupedByCategory = wrongAnswers.reduce((acc, wa) => {
+    const category = wa.question.category;
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(wa);
+    return acc;
+  }, {} as Record<string, WrongAnswer[]>);
 
-  // 카테고리별로 정렬된 배열 생성 (useMemo로 최적화)
-  const sortedCategories = useMemo(() => {
-    // 카테고리 순서 정의 (전기이론, 전기기기, 전기설비, 기타 순서)
-    const categoryOrder = ['전기이론', '전기기기', '전기설비', '기타'];
-
-    return Object.entries(groupedByCategory).sort(([a], [b]) => {
-      const indexA = categoryOrder.indexOf(a);
-      const indexB = categoryOrder.indexOf(b);
-      // 카테고리 순서에 있으면 순서대로, 없으면 맨 뒤로
-      if (indexA === -1 && indexB === -1) return a.localeCompare(b);
-      if (indexA === -1) return 1;
-      if (indexB === -1) return -1;
-      return indexA - indexB;
-    });
-  }, [groupedByCategory]);
+  // 카테고리 순서 정의 (전기이론, 전기기기, 전기설비, 기타 순서)
+  const categoryOrder = ['전기이론', '전기기기', '전기설비', '기타'];
+  
+  // 카테고리별로 정렬된 배열 생성
+  const sortedCategories = Object.entries(groupedByCategory).sort(([a], [b]) => {
+    const indexA = categoryOrder.indexOf(a);
+    const indexB = categoryOrder.indexOf(b);
+    // 카테고리 순서에 있으면 순서대로, 없으면 맨 뒤로
+    if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+    if (indexA === -1) return 1;
+    if (indexB === -1) return -1;
+    return indexA - indexB;
+  });
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
