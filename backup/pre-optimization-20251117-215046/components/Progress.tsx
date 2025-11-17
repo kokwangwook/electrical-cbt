@@ -1,12 +1,10 @@
-import { memo } from 'react';
-
 interface ProgressProps {
   current: number;
   total: number;
   answered: number;
 }
 
-const Progress = memo(function Progress({ current, total, answered }: ProgressProps) {
+export default function Progress({ current, total, answered }: ProgressProps) {
   const percentage = Math.round((answered / total) * 100);
 
   return (
@@ -27,6 +25,4 @@ const Progress = memo(function Progress({ current, total, answered }: ProgressPr
       </div>
     </div>
   );
-});
-
-export default Progress;
+}

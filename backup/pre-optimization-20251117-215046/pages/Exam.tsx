@@ -163,13 +163,10 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<{ [key: number]: number }>(initialAnswers);
-  // 타이머 재시작 방지를 위한 ref
-  const answersRef = useRef(answers);
-
   // 초기화: 세션 이해도와 전역 이해도를 병합 (전역 이해도가 우선, 세션 이해도로 덮어쓰기)
   const [learningProgress, setLearningProgress] = useState<{ [key: number]: number }>(
-    Object.keys(initialLearningProgress).length > 0
-      ? { ...globalLearningProgress, ...initialLearningProgress }
+    Object.keys(initialLearningProgress).length > 0 
+      ? { ...globalLearningProgress, ...initialLearningProgress } 
       : globalLearningProgress
   );
   const [startTime, setStartTime] = useState(initialStartTime);
@@ -179,11 +176,6 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
   const [isMobile, setIsMobile] = useState(isMobileDevice());
   const [isTimeReset, setIsTimeReset] = useState(false); // 시간 초기화 여부
   const [showScoreModal, setShowScoreModal] = useState(false);
-
-  // answers 변경 시 ref 업데이트
-  useEffect(() => {
-    answersRef.current = answers;
-  }, [answers]);
 
   // 화면 크기 변경 감지 (모바일/PC 전환 시)
   useEffect(() => {
@@ -331,7 +323,7 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         const remaining = Math.max(0, duration - elapsed);
         setRemainingTime(remaining);
-
+        
         // 시간이 모두 소진되면 자동 제출
         if (remaining === 0) {
           clearInterval(timer);
@@ -340,16 +332,15 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
         }
       } else {
         // 시간 초기화를 하지 않은 경우: 풀지 못한 문제당 1분씩 시간 부여
-        // ref를 사용하여 최신 answers 값 참조 (타이머 재시작 방지)
-        const answeredCount = Object.keys(answersRef.current).length;
+        const answeredCount = Object.keys(answers).length;
         const unansweredCount = displayQuestions.length - answeredCount;
-
+        
         // 답변 기록이 없으면 60분부터 시작
         if (answeredCount === 0) {
           const elapsed = Math.floor((Date.now() - startTime) / 1000);
           const remaining = Math.max(0, duration - elapsed);
           setRemainingTime(remaining);
-
+          
           // 시간이 모두 소진되면 자동 제출
           if (remaining === 0) {
             clearInterval(timer);
@@ -360,12 +351,12 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
           // 답변 기록이 있으면 풀지 못한 문제당 1분씩 시간 부여
           // 실제 경과 시간을 계산하여 시간이 흐르도록 함
           const elapsed = Math.floor((Date.now() - startTime) / 1000);
-
+          
           // 풀지 못한 문제당 1분(60초)씩 시간 부여
           const totalTime = unansweredCount * 60;
           const remaining = Math.max(0, totalTime - elapsed);
           setRemainingTime(remaining);
-
+          
           // 시간이 모두 소진되면 자동 제출
           if (remaining === 0) {
             clearInterval(timer);
@@ -377,7 +368,7 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [displayQuestions.length, startTime, duration, isTimeReset]);
+  }, [displayQuestions.length, answers, startTime, duration, isTimeReset]);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);

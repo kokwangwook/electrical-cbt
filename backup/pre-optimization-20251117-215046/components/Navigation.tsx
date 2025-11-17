@@ -1,5 +1,3 @@
-import { memo } from 'react';
-
 interface NavigationProps {
   totalQuestions: number;
   currentIndex: number;
@@ -7,7 +5,7 @@ interface NavigationProps {
   onNavigate: (index: number) => void;
 }
 
-const Navigation = memo(function Navigation({
+export default function Navigation({
   totalQuestions,
   currentIndex,
   answers,
@@ -84,6 +82,4 @@ const Navigation = memo(function Navigation({
       </div>
     </div>
   );
-});
-
-export default Navigation;
+}

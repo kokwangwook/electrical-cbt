@@ -1,4 +1,3 @@
-import { memo } from 'react';
 import type { Question as QuestionType } from '../types';
 import LatexRenderer from './LatexRenderer';
 import { getStandardTitle } from '../data/examStandards';
@@ -11,7 +10,7 @@ interface QuestionProps {
   showResult?: boolean;
 }
 
-const Question = memo(function Question({
+export default function Question({
   question,
   questionNumber,
   selectedAnswer,
@@ -117,6 +116,4 @@ const Question = memo(function Question({
       )}
     </div>
   );
-});
-
-export default Question;
+}

@@ -701,20 +701,8 @@ export function logout(): void {
 // ========== 오답 노트 (WrongAnswer) 관리 - 스마트 시스템 ==========
 
 export function getWrongAnswers(): WrongAnswer[] {
-  try {
-    const data = localStorage.getItem(WRONG_ANSWERS_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch (error) {
-    console.error('❌ 오답 데이터 파싱 오류:', error);
-    // 손상된 데이터 백업
-    const data = localStorage.getItem(WRONG_ANSWERS_KEY);
-    if (data) {
-      const backupKey = `${WRONG_ANSWERS_KEY}_backup_${Date.now()}`;
-      localStorage.setItem(backupKey, data);
-      console.log(`💾 손상된 오답 데이터를 ${backupKey}에 백업했습니다.`);
-    }
-    return [];
-  }
+  const data = localStorage.getItem(WRONG_ANSWERS_KEY);
+  return data ? JSON.parse(data) : [];
 }
 
 export function saveWrongAnswers(wrongAnswers: WrongAnswer[]): void {
@@ -809,21 +797,8 @@ export function clearWrongAnswers(): void {
 // ========== 시험 세션 (ExamSession) 관리 ==========
 
 export function getCurrentExamSession(): ExamSession | null {
-  try {
-    const data = localStorage.getItem(CURRENT_EXAM_SESSION_KEY);
-    return data ? JSON.parse(data) : null;
-  } catch (error) {
-    console.error('❌ 시험 세션 데이터 파싱 오류:', error);
-    // 손상된 세션 데이터 백업 후 제거
-    const data = localStorage.getItem(CURRENT_EXAM_SESSION_KEY);
-    if (data) {
-      const backupKey = `${CURRENT_EXAM_SESSION_KEY}_backup_${Date.now()}`;
-      localStorage.setItem(backupKey, data);
-      console.log(`💾 손상된 세션 데이터를 ${backupKey}에 백업했습니다.`);
-      localStorage.removeItem(CURRENT_EXAM_SESSION_KEY);
-    }
-    return null;
-  }
+  const data = localStorage.getItem(CURRENT_EXAM_SESSION_KEY);
+  return data ? JSON.parse(data) : null;
 }
 
 export function saveCurrentExamSession(session: ExamSession): void {
@@ -918,20 +893,8 @@ export function clearCurrentExamSession(): void {
  * 문제 ID를 키로 하는 객체: { [questionId]: progress }
  */
 export function getGlobalLearningProgress(): { [questionId: number]: number } {
-  try {
-    const data = localStorage.getItem(GLOBAL_LEARNING_PROGRESS_KEY);
-    return data ? JSON.parse(data) : {};
-  } catch (error) {
-    console.error('❌ 전역 문제 이해도 데이터 파싱 오류:', error);
-    // 손상된 데이터 백업
-    const data = localStorage.getItem(GLOBAL_LEARNING_PROGRESS_KEY);
-    if (data) {
-      const backupKey = `${GLOBAL_LEARNING_PROGRESS_KEY}_backup_${Date.now()}`;
-      localStorage.setItem(backupKey, data);
-      console.log(`💾 손상된 이해도 데이터를 ${backupKey}에 백업했습니다.`);
-    }
-    return {};
-  }
+  const data = localStorage.getItem(GLOBAL_LEARNING_PROGRESS_KEY);
+  return data ? JSON.parse(data) : {};
 }
 
 /**
@@ -994,20 +957,8 @@ export function getReviewQuestions(): Question[] {
 // ========== 시험 결과 (ExamResult) 관리 ==========
 
 export function getExamResults(): ExamResult[] {
-  try {
-    const data = localStorage.getItem(EXAM_RESULTS_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch (error) {
-    console.error('❌ 시험 결과 데이터 파싱 오류:', error);
-    // 손상된 데이터 백업
-    const data = localStorage.getItem(EXAM_RESULTS_KEY);
-    if (data) {
-      const backupKey = `${EXAM_RESULTS_KEY}_backup_${Date.now()}`;
-      localStorage.setItem(backupKey, data);
-      console.log(`💾 손상된 시험 결과 데이터를 ${backupKey}에 백업했습니다.`);
-    }
-    return [];
-  }
+  const data = localStorage.getItem(EXAM_RESULTS_KEY);
+  return data ? JSON.parse(data) : [];
 }
 
 export function saveExamResults(results: ExamResult[]): void {

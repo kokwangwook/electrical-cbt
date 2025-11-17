@@ -59,7 +59,7 @@ export default function Admin() {
   // 인증
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
-  const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'admin2024';
+  const ADMIN_PASSWORD = 'admin2024';
 
   // 탭
   const [activeTab, setActiveTab] = useState<'questions' | 'members' | 'sync' | 'statistics' | 'config' | 'login-history' | 'feedbacks' | 'upload' | 'student-records'>('questions');

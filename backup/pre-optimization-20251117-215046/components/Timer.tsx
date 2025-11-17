@@ -1,4 +1,4 @@
-import { useEffect, useState, memo } from 'react';
+import { useEffect, useState } from 'react';
 import { formatTime } from '../utils/helpers';
 
 interface TimerProps {
@@ -7,7 +7,7 @@ interface TimerProps {
   isPaused?: boolean;
 }
 
-const Timer = memo(function Timer({ duration, onTimeUp, isPaused = false }: TimerProps) {
+export default function Timer({ duration, onTimeUp, isPaused = false }: TimerProps) {
   const [timeLeft, setTimeLeft] = useState(duration);
 
   useEffect(() => {
@@ -42,6 +42,4 @@ const Timer = memo(function Timer({ duration, onTimeUp, isPaused = false }: Time
       ⏱️ 남은 시간: {formatTime(timeLeft)}
     </div>
   );
-});
-
-export default Timer;
+}
