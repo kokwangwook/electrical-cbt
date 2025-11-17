@@ -204,6 +204,9 @@ export default function StandardStatistics() {
                   // 해당 출제기준의 문제 그룹 가져오기 (O(1) 조회)
                   const standardGroup = questionGroups[standard] || {};
 
+                  // 해당 출제기준의 문제들 (onClick 핸들러에서 사용)
+                  const standardQuestions = Object.values(standardGroup).flat();
+
                   // 세부항목별 문제 수 계산 (미리 그룹화된 데이터 사용)
                   const detailItems = getDetailItemsByStandard(standard);
                   const detailItemStats: Record<string, number> = {};
