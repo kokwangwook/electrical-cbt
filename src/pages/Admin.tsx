@@ -1225,8 +1225,8 @@ export default function Admin() {
       setExamConfig(savedConfig);
       
       // 저장된 설정 상세 정보
-      const weightInfo = savedConfig.weightBasedEnabled 
-        ? `✅ 가중치 기반 출제: 활성화\n📋 모드: ${savedConfig.mode === 'filter' ? '필터 모드' : '비율 모드'}\n🎯 선택된 가중치: ${savedConfig.selectedWeights.join(', ')}`
+      const weightInfo = savedConfig.weightBasedEnabled
+        ? `✅ 가중치 기반 출제: 활성화\n🎯 선택된 가중치: ${savedConfig.selectedWeights.join(', ')}`
         : '❌ 가중치 기반 출제: 비활성화';
       
       alert(
@@ -1260,17 +1260,6 @@ export default function Admin() {
         : [...prev.selectedWeights, weight].sort((a, b) => a - b);
       return { ...prev, selectedWeights: newWeights };
     });
-  };
-
-  // 가중치 비율 업데이트
-  const updateWeightRatio = (weight: number, ratio: number) => {
-    setExamConfig(prev => ({
-      ...prev,
-      weightRatios: {
-        ...prev.weightRatios,
-        [weight]: Math.max(0, Math.min(100, ratio)) // 0-100 범위 제한
-      }
-    }));
   };
 
   // 백업 생성 (파일 다운로드)
@@ -2287,13 +2276,6 @@ export default function Admin() {
                   
                   {examConfig.weightBasedEnabled && (
                     <>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-700">출제 모드:</span>
-                        <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded">
-                          {examConfig.mode === 'filter' ? '🎯 필터 모드' : '📊 비율 모드'}
-                        </span>
-                      </div>
-                      
                       <div className="flex items-start gap-2">
                         <span className="font-semibold text-gray-700">선택된 가중치:</span>
                         <div className="flex flex-wrap gap-1">
@@ -2304,19 +2286,6 @@ export default function Admin() {
                           ))}
                         </div>
                       </div>
-                      
-                      {examConfig.mode === 'ratio' && Object.keys(examConfig.weightRatios || {}).length > 0 && (
-                        <div className="flex items-start gap-2">
-                          <span className="font-semibold text-gray-700">가중치 비율:</span>
-                          <div className="flex flex-wrap gap-1">
-                            {Object.entries(examConfig.weightRatios || {}).map(([weight, ratio]) => (
-                              <span key={weight} className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">
-                                가중치 {weight}: {ratio}%
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
                     </>
                   )}
                 </div>
@@ -2351,69 +2320,10 @@ export default function Admin() {
               </div>
             </div>
 
-            {/* 2. 출제 모드 선택 */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">2️⃣ 출제 모드 선택</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={() => setExamConfig(prev => ({ ...prev, mode: 'filter' }))}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    examConfig.mode === 'filter'
-                      ? 'border-blue-600 bg-blue-50'
-                      : 'border-gray-300 bg-white hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="text-left">
-                    <div className="flex items-center gap-2 mb-2">
-                      <input
-                        type="radio"
-                        checked={examConfig.mode === 'filter'}
-                        onChange={() => {}}
-                        className="w-4 h-4"
-                      />
-                      <span className="font-bold text-gray-800">필터 모드</span>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      선택한 가중치의 문제만 출제 대상으로 포함하고,
-                      <br />
-                      역 가중치 기반으로 랜덤 선택합니다.
-                    </p>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => setExamConfig(prev => ({ ...prev, mode: 'ratio' }))}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    examConfig.mode === 'ratio'
-                      ? 'border-purple-600 bg-purple-50'
-                      : 'border-gray-300 bg-white hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="text-left">
-                    <div className="flex items-center gap-2 mb-2">
-                      <input
-                        type="radio"
-                        checked={examConfig.mode === 'ratio'}
-                        onChange={() => {}}
-                        className="w-4 h-4"
-                      />
-                      <span className="font-bold text-gray-800">비율 모드</span>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      가중치별로 정확한 비율을 할당하여
-                      <br />
-                      문제를 선택합니다.
-                    </p>
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* 3. 출제 대상 가중치 선택 (필터 모드) */}
-            {examConfig.mode === 'filter' && (
+            {/* 2. 출제 대상 가중치 선택 */}
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">
-                  3️⃣ 출제 대상 가중치 선택 (필터 모드)
+                  2️⃣ 출제 대상 가중치 선택
                 </h3>
                 <p className="text-sm text-gray-600 mb-4">
                   출제에 포함할 가중치 레벨을 선택하세요. 선택한 가중치의 문제만 출제됩니다.
@@ -2456,77 +2366,6 @@ export default function Admin() {
                   })}
                 </div>
               </div>
-            )}
-
-            {/* 4. 가중치별 출제 비율 할당 (비율 모드) */}
-            {examConfig.mode === 'ratio' && (
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">
-                  3️⃣ 가중치별 출제 비율 할당 (비율 모드)
-                </h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  각 가중치 레벨별로 출제 비율(%)을 설정하세요. 전체 합계가 100%일 필요는 없습니다.
-                </p>
-
-                <div className="space-y-3">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(weight => {
-                    const ratio = examConfig.weightRatios?.[weight] || 0;
-                    return (
-                      <div key={weight} className="flex items-center gap-4">
-                        <label className="w-32 font-semibold text-gray-700">
-                          가중치 {weight}
-                          <span className="text-xs text-gray-500 ml-2">
-                            {weight === 1
-                              ? '(최고 빈도)'
-                              : weight === 10
-                              ? '(최저 빈도)'
-                              : ''}
-                          </span>
-                        </label>
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={ratio}
-                          onChange={e => updateWeightRatio(weight, parseInt(e.target.value))}
-                          className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
-                        />
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={ratio}
-                          onChange={e =>
-                            updateWeightRatio(weight, parseInt(e.target.value) || 0)
-                          }
-                          className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                        />
-                        <span className="text-gray-600">%</span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* 비율 합계 표시 */}
-                <div className="mt-6 p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-purple-800">전체 비율 합계:</span>
-                    <span className="text-2xl font-bold text-purple-600">
-                      {Object.values(examConfig.weightRatios || {}).reduce(
-                        (sum, ratio) => sum + ratio,
-                        0
-                      )}
-                      %
-                    </span>
-                  </div>
-                  <p className="text-sm text-purple-700 mt-2">
-                    💡 합계가 100%를 초과하면 자동으로 비율이 조정됩니다.
-                    <br />
-                    합계가 100% 미만이면 나머지는 랜덤하게 채워집니다.
-                  </p>
-                </div>
-              </div>
-            )}
 
             {/* 설명 및 공식 안내 */}
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg shadow-md p-6 border-2 border-blue-200">
@@ -2558,19 +2397,6 @@ export default function Admin() {
                   </p>
                 </div>
 
-                <div className="bg-white rounded-lg p-4">
-                  <h4 className="font-bold text-green-800 mb-2">🔀 출제 모드</h4>
-                  <ul className="text-sm text-gray-700 space-y-2">
-                    <li>
-                      <span className="font-semibold">필터 모드:</span> 선택한 가중치의 문제만 출제 대상에 포함하고,
-                      역 가중치 기반 확률로 랜덤 선택합니다.
-                    </li>
-                    <li>
-                      <span className="font-semibold">비율 모드:</span> 가중치별로 정확한 비율(%)을 할당하여
-                      문제를 선택합니다. 예: 가중치 1 = 30%, 가중치 2 = 20% 등
-                    </li>
-                  </ul>
-                </div>
               </div>
             </div>
 
