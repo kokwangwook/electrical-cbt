@@ -1607,7 +1607,7 @@ export default function Admin() {
                   : 'text-gray-600 hover:text-gray-800'
               }`}
             >
-              📚 문제 관리 ({questions.length})
+              📚 문제 관리 ({serverQuestionCounts?.total ?? questions.length})
             </button>
             <button
               onClick={() => setActiveTab('members')}
