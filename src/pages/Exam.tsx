@@ -169,6 +169,18 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
           console.log(`⏰ 세션 복원: 모든 문제를 풀었습니다.`);
         }
       }
+    } else {
+      // ✅ 세션은 있지만 문제 ID가 다른 경우 (새로운 랜덤 문제 세트)
+      // 전역 답변 기록을 불러옴
+      sortedQuestions.forEach(q => {
+        if (q.id in questionAnswerHistory) {
+          initialAnswers[q.id] = questionAnswerHistory[q.id];
+        }
+      });
+      // 전역 이해도도 불러옴
+      initialLearningProgress = globalLearningProgress;
+      console.log(`💾 새로운 문제 세트: 전역 답변 기록 ${Object.keys(initialAnswers).length}개 로드`);
+      console.log(`💾 전역 이해도 ${Object.keys(initialLearningProgress).length}개 로드`);
     }
   } else if (isTimedRandomMode && savedSession) {
     // 실전 모의고사 모드인 경우 세션 삭제 (새로 시작)
@@ -181,7 +193,10 @@ export default function Exam({ questions, onComplete, onExit, mode: propMode }: 
         initialAnswers[q.id] = questionAnswerHistory[q.id];
       }
     });
+    // 전역 이해도도 불러옴
+    initialLearningProgress = globalLearningProgress;
     console.log(`💾 전역 답변 기록 로드: ${Object.keys(initialAnswers).length}개 문제의 이전 답변 복원`);
+    console.log(`💾 전역 이해도 ${Object.keys(initialLearningProgress).length}개 로드`);
   }
 
   const [currentIndex, setCurrentIndex] = useState(0);
